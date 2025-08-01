@@ -1,0 +1,4 @@
+# Ignora todo excepto archivos .tex
+*
+!.gitignore
+!*.tex

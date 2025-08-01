@@ -1,0 +1,116 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\title{Predicción y Análisis de Producción Eléctrica en Parques Eólicos mediante Machine Learning}
+
+\author{
+	\IEEEauthorblockN{Luis Enrique Koc Góngora, Alex Felipe Mancilla Antay, Herbert Antonio Meléndez García, Dennis Jack Paitán Cano}
+	\IEEEauthorblockA{Facultad de Ingeniería Industrial y de Sistemas\\
+		Universidad Nacional de Ingeniería\\
+		Lima, Perú\\
+		\{koc.luis, afmancilla, melendez.herbert, paitan.dennis\}@gmail.com}
+}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		La predicción precisa de la producción eléctrica en parques eólicos es esencial para mejorar la planificación operativa, optimizar el mantenimiento de aerogeneradores y maximizar la participación en mercados de corto plazo. Este trabajo aplica algoritmos de \textit{Machine Learning} supervisado y no supervisado para estimar la potencia generada cada 15 minutos con un día de anticipación. Se exploran modelos como regresión lineal, SVR, Random Forest, Gradient Boosting y ensambles, además de aplicar técnicas no supervisadas para análisis exploratorio de patrones de viento. El modelo \textit{ensemble} obtuvo un RMSE de 0.1178 y un R² de 0.6798, validando su efectividad. \\ 
+		\textbf{Palabras clave:} Energía eólica, Predicción, Machine Learning, Regresión, Modelos ensemble, Clustering.
+	\end{abstract}
+	
+	\section{Introducción}
+	La generación eólica representa una fuente renovable clave dentro del sistema eléctrico moderno. Sin embargo, la variabilidad inherente del viento impone desafíos a la predicción de la producción energética. La posibilidad de estimar con antelación la energía que será generada permite mejorar la operación diaria del parque, reducir pérdidas y tomar decisiones más informadas en el mercado energético. Este trabajo combina técnicas de aprendizaje supervisado y no supervisado para abordar la predicción de potencia eólica en intervalos de 15 minutos con un horizonte de 24 horas.
+	
+	\section{Estado del arte}
+	Liu et al. (2023) destacan la importancia crítica de contar con modelos precisos de predicción eólica, ya que los errores en el pronóstico afectan directamente la programación del despacho de energía y generan penalidades económicas por desvíos en mercados regulados \cite{liu2023day}.
+	
+	Liu et al. (2023) destacan la importancia crítica de contar con modelos precisos de predicción eólica, ya que los errores en el pronóstico afectan directamente la programación del despacho de energía y generan penalidades económicas por desvíos en mercados regulados \cite{liu2023day}.
+	
+	Chen y Folly (2018) realizaron una revisión exhaustiva de las técnicas de predicción de energía eólica, clasificando los métodos según el horizonte temporal (corto, medio, largo plazo) y el enfoque (físico, estadístico e híbrido) \cite{chen2018wind}.
+	
+	AlShafeey y Csaki (2024) proponen un modelo híbrido adaptativo que selecciona dinámicamente el mejor algoritmo de predicción (ANN, KNN o SVR) para cada instante, basado en su desempeño pasado \cite{alshafeey2024adaptive}.
+	
+	Jonkers et al. (2024) desarrollan un marco de predicción probabilística regional utilizando CNNs profundas y cópulas para mejorar precisión y calibración \cite{jonkers2024probabilistic}.
+	
+	Lee et al. (2024) integran características verticales del viento a distintas alturas para robustecer los modelos de predicción \cite{lee2024vertical}.
+	
+	Bouabdallaoui et al. (2023) comparan cuatro técnicas clásicas y concluyen que SVM ofrece el mejor desempeño (MAPE = 2.42\%, R² = 0.95) \cite{bouabdallaoui2023application}.
+	
+	Ayene y Yibre (2024) utilizan LSTM, Bi-LSTM y GRU con datos de 5 minutos en Etiopía, alcanzando R² > 0.97 \cite{ayene2024wind}.
+	
+	Qureshi et al. (2023) confirman que GRU supera a ARIMA en precisión en un parque en Pakistán (RMSE = 0.047, R² = 0.89) \cite{qureshi2023shortterm}.
+	
+	Rathnayake et al. (2025) validan 24 algoritmos de ML, destacando los ensambles tipo bagging con interpretabilidad vía SHAP \cite{rathnayake2025predicting}.
+	
+	Tuncar et al. (2024) presentan una revisión integral sobre ML, DL y RL en predicción eólica y enfatizan interpretabilidad y estacionalidad \cite{tuncar2024review}.
+	
+	Kolev y Sulakov (2019) muestran que MLP, RBF y FNN superan modelos físicos para mercados \textit{day-ahead} \cite{kolev2019forecasting}.
+	
+	Jacondino et al. (2021) usan el modelo WRF y destacan la influencia del esquema de capa límite en la precisión horaria \cite{jacondino2021hourly}.
+	
+	Huang et al. (2023) optimizan ensembles con PSO, SSA y WOA, integrando Random Forest para corregir errores de velocidad del viento \cite{huang2023ensemble}.
+	
+	Huang et al. (2023b) presentan una mejora sobre su trabajo previo al incorporar estrategias avanzadas de optimización multiobjetivo para conjuntos de predictores eólicos. Su propuesta integra selección de características mediante GWO (Grey Wolf Optimizer) y balance de modelos con WOA-PSO para mejorar la precisión en predicción diaria horaria. Comparan seis modelos base (LSTM, SVR, KNN, RF, LightGBM, CNN) en un conjunto real de datos eólicos y logran una mejora en RMSE y MAPE, con énfasis en robustez y rendimiento computacional \cite{huang2023multiobjective}.
+	
+	Tsai et al. (2023) revisan el uso de IA y aprendizaje federado en la predicción eólica moderna \cite{tsai2023review}.
+	
+	Kirk-Davidoff (2012) combina modelos estadísticos y NWP para mejorar precisión diaria y horaria, aplicando remoción de sesgo \cite{kirk2012forecasting}.
+	
+	Cococcioni et al. (2012) destacan la utilidad de SVR y MLP para predicción un día antes con corrección de sesgo y buen preprocesamiento \cite{cococcioni2012oneday}.
+	
+	Zhang et al. (2024) proponen un modelo CNN-BiLSTM con autoregresión para predicción de precios \textit{day-ahead}, que puede adaptarse a entornos eólicos \cite{zhang2024cnnbilstm}.
+	
+	\section{Planteamiento del Problema}
+	Se busca construir un modelo que permita predecir la energía eléctrica generada por un parque eólico utilizando datos históricos de velocidad del viento, número de aerogeneradores disponibles y producción real, todos con una granularidad de 15 minutos. Esta predicción servirá para mejorar las estrategias de mantenimiento y operación.
+	
+	\section{Hipótesis}
+	Se espera que modelos de aprendizaje automático combinados (ensembles) superen a los modelos individuales tradicionales para la predicción de potencia eólica en términos de precisión y robustez.
+	
+	\section{Metodología de investigación}
+	El enfoque metodológico incluyó:
+	\begin{itemize}
+		\item Preprocesamiento de datos (interpolación, limpieza, escalamiento).
+		\item Entrenamiento de modelos supervisados.
+		\item Evaluación comparativa con métricas como RMSE y R².
+		\item Validación cruzada y análisis de clustering no supervisado.
+	\end{itemize}
+	
+	\section{Creación de componentes}
+	\subsection{Modelos Supervisados Evaluados}
+	\begin{itemize}
+		\item Regresión Lineal, Ridge, Lasso
+		\item SVR (Support Vector Regression)
+		\item KNN (K-Nearest Neighbors)
+		\item Random Forest y Gradient Boosting
+		\item Ensemble (VotingRegressor)
+	\end{itemize}
+	El mejor desempeño lo obtuvo el ensemble simple: RMSE = 0.1178, R² = 0.6798.
+	
+	\subsection{Modelos No Supervisados}
+	Técnicas de clustering como K-Means y DBSCAN permitieron identificar patrones de operación y segmentar condiciones meteorológicas similares.
+	
+	\section{Desempeño comparativo de los modelos}
+	\subsection{Resultados y Discusión}
+	Los modelos de ensemble mostraron una mejora sustancial respecto a modelos base. Se confirmó la estabilidad de predicción en distintas condiciones ambientales y se respaldaron los hallazgos con estudios previos como el de Qureshi et al. (2023) y Ayene y Yibre (2024).
+	
+	\section{Conclusiones}
+	Los modelos basados en Machine Learning, especialmente los ensembles, permiten realizar predicciones precisas de producción eólica. Su implementación práctica facilitaría decisiones informadas en mantenimiento y operaciones.
+	
+	\section{Recomendaciones}
+	\begin{itemize}
+		\item Incorporar modelos híbridos con adaptación dinámica como los propuestos por AlShafeey y Csaki.
+		\item Integrar la predicción en sistemas SCADA para monitoreo continuo.
+		\item Evaluar nuevos modelos DL y preprocesamiento espacial.
+	\end{itemize}
+	
+	\bibliographystyle{IEEEtran}
+	\bibliography{referencias}
+	
+\end{document}
