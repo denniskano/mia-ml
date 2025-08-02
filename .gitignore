@@ -2,3 +2,7 @@
 *
 !.gitignore
 !*.tex
+!images/
+!*.py
+!*.xlsx
+!*.csv
