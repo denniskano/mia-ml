@@ -12,6 +12,9 @@
 \usepackage{lastpage}
 \usepackage{longtable}
 \usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
 
 \title{Predicción de Potencia Eólica mediante Ensembles de Machine Learning: Un Enfoque Comparativo}
 
@@ -20,7 +23,7 @@
 	\IEEEauthorblockA{Facultad de Ingeniería Industrial y de Sistemas\\
 		Universidad Nacional de Ingeniería\\
 		Lima, Perú\\
-		\{koc.luis, afmancilla, melendez.herbert, paitan.dennis\}@gmail.com}
+		\{luis.koc, afmancilla, hamg.94, denniskano\}@gmail.com}
 }
 
 \begin{document}
@@ -36,89 +39,150 @@
 	\maketitle
 	
 	\begin{abstract}
-		La predicción precisa de la producción eléctrica en parques eólicos es fundamental para la gestión eficiente de la red eléctrica y la optimización de operaciones. Este trabajo presenta un enfoque integral que combina técnicas avanzadas de preprocesamiento de datos, selección automática de características y modelos de ensemble para predecir la potencia generada con un horizonte de 24 horas. Se evaluaron múltiples algoritmos incluyendo Random Forest, Gradient Boosting, XGBoost, LightGBM, CatBoost y redes neuronales, implementando un sistema de detección de anomalías mediante DBSCAN. El modelo ensemble optimizado alcanzó un R² de 0.8234 y un MAE de 0.4287, demostrando superioridad sobre modelos individuales. Los resultados validan la efectividad de los ensembles ponderados para aplicaciones de predicción eólica en tiempo real.
+		La predicción precisa de la producción horaria en parques eólicos es esencial para garantizar la estabilidad del sistema eléctrico, reducir penalizaciones por desvío y facilitar la integración de energías renovables en el mercado diario. Este estudio desarrolla un modelo de aprendizaje automático con horizonte de 24 horas, basado en un enfoque integral que incluye limpieza avanzada de datos, ingeniería y selección automatizada de características, y ensamblaje de modelos. Se analizaron múltiples algoritmos supervisados —entre ellos \textit{Random Forest}, \textit{Gradient Boosting}, \textit{XGBoost}, \textit{LightGBM}, \textit{CatBoost} y redes neuronales MLP—, integrados mediante técnicas de ensamblado (\textit{stacking} y combinación ponderada). Adicionalmente, se incorporó un sistema de detección no supervisada de anomalías basado en DBSCAN aplicado sobre los residuos del modelo.
+		
+		El mejor desempeño se obtuvo con un \textit{ensemble} ponderado (90\,\% MLP y 10\,\% regresión lineal), que alcanzó un coeficiente de determinación \( R^2 = 0.8234 \) y un error absoluto medio (MAE) de 0.4287. Estos resultados superan a los modelos individuales, validando la eficacia de los métodos \textit{ensemble} para la predicción operativa de potencia eólica. La metodología propuesta es consistente con las mejores prácticas encontradas en la literatura, como el uso de modelos híbridos dinámicos, optimización de pesos mediante algoritmos de enjambre, y reducción de errores mediante clasificación previa de los datos o corrección de predicciones meteorológicas. Se recomienda su implementación práctica y actualización diaria para mejorar la precisión y robustez en escenarios reales de operación.
 	\end{abstract}
+
 	
 	\section{Introducción}
-	La integración de energías renovables en la matriz energética moderna presenta desafíos significativos debido a la inherente variabilidad de fuentes como la eólica. La capacidad de predecir con precisión la producción eléctrica de parques eólicos es crucial para la planificación operativa, el mantenimiento preventivo y la participación efectiva en mercados energéticos. Este trabajo aborda el problema de predicción de potencia eólica mediante un enfoque metodológico integral que combina técnicas avanzadas de machine learning con análisis exploratorio de datos.
 	
-	La metodología propuesta incluye un pipeline completo de preprocesamiento que maneja datos faltantes, detecta y elimina valores atípicos, y aplica técnicas de normalización. Se implementa un sistema de selección automática de características que combina análisis de correlación, importancia de características mediante Random Forest y permutation importance para identificar las variables más relevantes.
+	La integración de fuentes renovables en la matriz energética contemporánea conlleva desafíos significativos, especialmente debido a la variabilidad inherente de recursos como la energía eólica. La capacidad de anticipar con precisión la generación eléctrica en parques eólicos es crucial para una planificación operativa eficiente, el diseño de estrategias de mantenimiento predictivo y una participación efectiva en mercados eléctricos competitivos. Este trabajo aborda el problema de predicción de potencia eólica mediante un enfoque metodológico integral que combina técnicas avanzadas de aprendizaje automático con análisis exploratorio y procesamiento riguroso de datos.
+	
+	La metodología propuesta contempla un pipeline completo de preprocesamiento que gestiona datos faltantes, detecta y filtra valores atípicos, y aplica escalamiento estandarizado. Asimismo, se implementa un sistema de selección automática de características que combina análisis de correlación, importancia de atributos mediante \textit{Random Forest} y técnicas de \textit{permutation importance}, con el objetivo de identificar las variables más influyentes para el modelo de predicción.
 	
 	\subsection{Contexto y Motivación}
-	La transición energética hacia fuentes renovables ha posicionado a la energía eólica como una de las tecnologías más prometedoras para la descarbonización del sector eléctrico. Sin embargo, la naturaleza intermitente del viento introduce complejidades significativas en la gestión de la red eléctrica, requiriendo herramientas sofisticadas de predicción para optimizar la operación y minimizar costos.
 	
-	Los parques eólicos modernos generan grandes volúmenes de datos operativos y meteorológicos que, cuando se procesan adecuadamente, pueden proporcionar insights valiosos para mejorar la eficiencia operativa. La integración de múltiples fuentes de datos, incluyendo información meteorológica de alta resolución y datos operativos en tiempo real, permite desarrollar modelos predictivos más precisos y robustos.
+	La transición hacia un modelo energético bajo en carbono ha posicionado a la energía eólica como una de las tecnologías clave para la descarbonización del sector eléctrico. No obstante, la naturaleza intermitente del recurso eólico introduce incertidumbre y complejidad en la gestión de la red, requiriendo sistemas de pronóstico altamente precisos para reducir costos de operación, evitar penalizaciones por desvío y mejorar la integración con otras fuentes.
+	
+	Los parques eólicos modernos generan grandes volúmenes de datos meteorológicos y operativos que, debidamente procesados, permiten construir modelos predictivos más robustos. La fusión de múltiples fuentes, como datos satelitales (NASA POWER) y mediciones en sitio, posibilita una representación más precisa del entorno operativo, elevando el potencial predictivo de los modelos de aprendizaje automático.
 	
 	\subsection{Objetivos del Trabajo}
-	Los objetivos principales de esta investigación incluyen:
+	
+	Los principales objetivos de esta investigación son:
+	
 	\begin{enumerate}
-		\item Desarrollar un pipeline completo de preprocesamiento de datos que integre múltiples fuentes de información meteorológica y operativa
-		\item Implementar técnicas avanzadas de selección de características que identifiquen las variables más relevantes para la predicción de potencia
-		\item Evaluar el desempeño comparativo de múltiples algoritmos de machine learning, incluyendo ensembles y modelos de deep learning
-		\item Desarrollar un sistema de detección de anomalías que permita identificar condiciones operativas anómalas
-		\item Validar la capacidad predictiva del modelo en horizontes temporales de 24 horas
+		\item Desarrollar un pipeline de preprocesamiento que integre múltiples fuentes de datos meteorológicos y operativos.
+		\item Aplicar técnicas avanzadas de selección de variables para identificar los atributos más relevantes en la predicción de potencia.
+		\item Evaluar el desempeño de diversos algoritmos de \textit{machine learning}, incluyendo modelos de ensamblado y redes neuronales profundas.
+		\item Implementar un sistema de detección de anomalías que identifique condiciones operativas atípicas.
+		\item Validar la capacidad predictiva del modelo para un horizonte de 24 horas.
 	\end{enumerate}
 	
 	\subsection{Contribuciones Principales}
-	Este trabajo contribuye al estado del arte en predicción eólica mediante:
-	\begin{itemize}
-		\item Un pipeline de preprocesamiento robusto que maneja eficientemente datos faltantes y valores atípicos
-		\item Un sistema de selección automática de características que combina múltiples técnicas para optimizar la dimensionalidad
-		\item Una evaluación exhaustiva de algoritmos de machine learning que incluye modelos tradicionales y técnicas avanzadas
-		\item Un enfoque de ensemble ponderado que supera el desempeño de modelos individuales
-		\item Un sistema de detección de anomalías basado en DBSCAN que proporciona insights operativos valiosos
-	\end{itemize}
 	
+	Las contribuciones de este trabajo al estado del arte en predicción de potencia eólica incluyen:
+	
+	\begin{itemize}
+		\item Un pipeline robusto de preprocesamiento que gestiona eficazmente valores ausentes y atípicos.
+		\item Un sistema combinado de selección automática de características que optimiza la dimensionalidad del conjunto de datos.
+		\item Una evaluación comparativa de modelos clásicos y avanzados de \textit{machine learning}, incluyendo técnicas de ensamblado.
+		\item Un enfoque de \textit{ensemble} ponderado que mejora el desempeño respecto a modelos individuales.
+		\item Un sistema de detección de anomalías basado en DBSCAN, útil para diagnosticar errores operativos o condiciones meteorológicas excepcionales.
+	\end{itemize}
+
+	
+
 	\section{Estado del Arte}
-	La literatura reciente en predicción eólica ha evolucionado significativamente, con enfoques que van desde modelos estadísticos tradicionales hasta técnicas avanzadas de deep learning. Liu et al. \cite{liu2023day} destacan la importancia crítica de modelos precisos para evitar penalizaciones económicas en mercados regulados.
 	
-	Chen y Folly \cite{chen2018wind} proporcionan una clasificación exhaustiva de métodos de predicción eólica, categorizando las técnicas según horizonte temporal y enfoque metodológico. Su trabajo establece las bases para la comparación sistemática de diferentes algoritmos.
+	La predicción de potencia eólica ha evolucionado notablemente en la última década, incorporando enfoques cada vez más sofisticados que van desde modelos físicos y estadísticos tradicionales hasta técnicas de aprendizaje automático y redes neuronales profundas. Esta sección resume los enfoques más relevantes y sus aportes, destacando aquellas contribuciones que fundamentan el enfoque adoptado en el presente estudio.
 	
-	AlShafeey y Csaki \cite{alshafeey2024adaptive} introducen un modelo híbrido adaptativo que selecciona dinámicamente el mejor algoritmo según el contexto temporal, demostrando la superioridad de enfoques adaptativos.
+	\subsection{Importancia y motivación}
 	
-	Rathnayake et al. \cite{rathnayake2025predicting} validan 24 algoritmos de machine learning, destacando la efectividad de ensembles tipo bagging y la importancia de la interpretabilidad mediante técnicas como SHAP.
+	Liu et al.~\cite{liu2023day} destacan la importancia crítica de contar con modelos de predicción robustos y precisos en contextos de mercados eléctricos regulados, donde los errores de pronóstico pueden generar penalizaciones económicas significativas. Esta motivación es consistente con nuestro trabajo, que busca anticipar la potencia horaria con 24 horas de antelación para optimizar la operación del parque y evitar desvíos en la oferta energética.
 	
-	Huang et al. \cite{huang2023ensemble} optimizan ensembles mediante algoritmos de optimización por enjambre (PSO, SSA, WOA), integrando Random Forest para corrección de errores en velocidad del viento.
+	Chen y Folly~\cite{chen2018wind} presentan una taxonomía completa de métodos de predicción eólica, clasificándolos por horizonte temporal (corto, medio y largo plazo) y por tipo de metodología (estadística, física, híbrida y basada en inteligencia artificial). Su marco conceptual guía la organización de esta sección y justifica la elección de enfoques híbridos y de ML en nuestro proyecto.
 	
-	\subsection{Modelos Físicos y Numéricos}
-	Los modelos físicos basados en ecuaciones de dinámica de fluidos computacional (CFD) han sido tradicionalmente utilizados para la predicción eólica. Estos modelos consideran la topografía local, la rugosidad de la superficie y las condiciones atmosféricas para simular el comportamiento del viento. Sin embargo, su alta complejidad computacional y la necesidad de datos de entrada detallados limitan su aplicación práctica en entornos operativos.
+	\subsection{Modelos físicos y numéricos}
 	
-	Los modelos de mesoescala como el Weather Research and Forecasting (WRF) proporcionan información meteorológica de alta resolución que puede ser utilizada como entrada para modelos de predicción de potencia. Jacondino et al. \cite{jacondino2021hourly} demuestran la influencia del esquema de capa límite en la precisión de predicciones horarias.
+	Los modelos físicos como CFD o mesoescala (WRF) son útiles para representar fenómenos atmosféricos, aunque suelen ser costosos computacionalmente. Jacondino et al.~\cite{jacondino2021hourly} demostraron que el esquema de parametrización de la capa límite (BouLac) en WRF influye significativamente en la precisión del pronóstico horario (MAE ~12.6\%). En nuestro caso, los datos meteorológicos de Open-Meteo y NASA POWER actúan como entradas de alta resolución que cumplen una función análoga, pero integrados a modelos de ML más ligeros y prácticos para operación diaria.
 	
-	\subsection{Modelos Estadísticos Tradicionales}
-	Los modelos estadísticos como ARIMA (AutoRegressive Integrated Moving Average) y sus variantes han sido ampliamente utilizados en predicción de series temporales. Qureshi et al. \cite{qureshi2023shortterm} comparan GRU con ARIMA en un parque eólico de Pakistán, encontrando que GRU supera significativamente a ARIMA en precisión (RMSE = 0.047, R² = 0.89).
+	\subsection{Modelos estadísticos}
 	
-	Los modelos de regresión múltiple y análisis de componentes principales (PCA) han sido aplicados para capturar relaciones lineales entre variables meteorológicas y producción de potencia. Sin embargo, estos modelos tienen limitaciones para capturar relaciones no lineales complejas presentes en sistemas eólicos.
+	Qureshi et al.~\cite{qureshi2023shortterm} compararon ARIMA y GRU en un parque eólico de Pakistán, reportando un RMSE de 0.047 y \(R^2 = 0.89\) a favor del modelo GRU. Esto evidencia la limitación de los modelos lineales para capturar la no linealidad del recurso eólico. Este hallazgo motivó la inclusión de modelos no lineales en nuestra comparación, como redes MLP y modelos ensemble.
 	
-	\subsection{Machine Learning y Deep Learning}
-	El advenimiento de técnicas de machine learning ha revolucionado la predicción eólica. Los algoritmos de ensemble como Random Forest y Gradient Boosting han demostrado superioridad sobre modelos individuales debido a su capacidad para capturar patrones complejos y reducir el overfitting.
+	\subsection{Aprendizaje automático y redes profundas}
 	
-	Las redes neuronales artificiales (ANN) y específicamente las redes neuronales multicapa (MLP) han sido ampliamente aplicadas. Kolev y Sulakov \cite{kolev2019forecasting} muestran que MLP, RBF y FNN superan modelos físicos para mercados day-ahead.
+	El uso de algoritmos como Random Forest y Gradient Boosting se ha consolidado como estándar en predicción eólica. Kolev y Sulakov~\cite{kolev2019forecasting} muestran que MLP, RBF y FNN superan consistentemente a modelos físicos para predicción day-ahead, validando la efectividad de técnicas basadas en datos.
 	
-	Los modelos de deep learning, particularmente las redes neuronales recurrentes (RNN), LSTM (Long Short-Term Memory) y GRU (Gated Recurrent Unit), han mostrado excelente capacidad para capturar dependencias temporales. Ayene y Yibre \cite{ayene2024wind} utilizan LSTM, Bi-LSTM y GRU con datos de 5 minutos en Etiopía, alcanzando R² > 0.97.
+	Ayene y Yibre~\cite{ayene2024wind} implementaron LSTM, Bi-LSTM y GRU con datos de 5 minutos, logrando \(R^2 > 0.97\), evidenciando la capacidad de las redes recurrentes para capturar patrones temporales. Aunque nuestro trabajo opera a una resolución horaria, estos resultados respaldan la selección de arquitecturas neuronales para tareas temporales.
 	
-	\subsection{Ensembles y Optimización}
-	Los modelos ensemble combinan múltiples predictores para mejorar la precisión y robustez. Huang et al. (2023) optimizan ensembles mediante algoritmos de optimización por enjambre, integrando Random Forest para corrección de errores \cite{huang2023ensemble}.
+	\subsection{Ensembles y optimización}
 	
-	Las técnicas de stacking y blending han sido aplicadas para combinar modelos heterogéneos. Rathnayake et al. (2025) validan 24 algoritmos de ML, destacando la efectividad de ensembles tipo bagging \cite{rathnayake2025predicting}.
+	Huang et al.~\cite{huang2023ensemble} presentan un enfoque de ensemble optimizado mediante algoritmos de enjambre (PSO, SSA, WOA), logrando mejoras de hasta 31\% frente a modelos individuales. Además, emplean Random Forest para corregir errores en las predicciones de velocidad del viento, estrategia análoga a nuestro uso de variables derivadas y ensamblados ponderados.
 	
-	\subsection{Selección de Características y Preprocesamiento}
-	La selección de características es crucial para el rendimiento de los modelos de predicción. Técnicas como análisis de correlación, importancia de características mediante Random Forest y permutation importance han sido aplicadas para identificar variables relevantes.
+	Rathnayake et al.~\cite{rathnayake2025predicting} validaron 24 algoritmos en el parque Musalpetti (Sri Lanka), encontrando que los modelos bagging y stacking alcanzan mayor estabilidad y precisión. Este estudio refuerza nuestra decisión de combinar MLP y regresión lineal en un ensemble ponderado que logró \(R^2 = 0.823\), superando a todos los modelos individuales.
 	
-	El preprocesamiento de datos, incluyendo normalización, manejo de valores faltantes y detección de outliers, es fundamental para el éxito de los modelos. Cococcioni et al. \cite{cococcioni2012oneday} destacan la utilidad de SVR y MLP para predicción un día antes con corrección de sesgo y buen preprocesamiento.
+	\subsection{Selección de características y preprocesamiento}
 	
-	\subsection{Detección de Anomalías}
-	La detección de anomalías en datos eólicos es importante para identificar condiciones operativas anómalas y mejorar la calidad de los datos. Técnicas como DBSCAN, Isolation Forest y One-Class SVM han sido aplicadas para este propósito.
+	La correcta selección de variables es clave para evitar sobreajuste y mejorar la interpretabilidad. AlShafeey y Csaki~\cite{alshafeey2024adaptive} proponen un sistema adaptativo que elige dinámicamente el mejor modelo y conjunto de variables según la ventana temporal. Este enfoque motivó nuestro uso combinado de análisis de correlación, importancia de características vía Random Forest y \textit{permutation importance}, seleccionando 9 variables relevantes.
 	
-	\subsection{Tendencias Actuales}
-	Las tendencias actuales en predicción eólica incluyen:
+	Cococcioni et al.~\cite{cococcioni2012oneday} aplican SVM y MLP para predicción día-ahead en plantas solares, resaltando la necesidad de un preprocesamiento riguroso. En línea con ello, nuestro pipeline incluye detección de outliers (z-score e IQR), filtrado físico velocidad-potencia, y escalamiento estandarizado, como indica la PPT.
+	
+	\subsection{Detección de anomalías}
+	
+	La identificación de valores atípicos es clave para evitar la degradación del modelo. DBSCAN, Isolation Forest y One-Class SVM son técnicas comunes. Nuestro uso de DBSCAN sobre residuos de predicción sigue el enfoque de Huang et al.~\cite{huang2023ensemble} y nos permitió aislar un 5.9\% de puntos anómalos que correspondían a errores de lectura o condiciones excepcionales, mejorando así la estabilidad del modelo.
+	
+	\subsection{Tendencias actuales}
+	
+	Las líneas de investigación más relevantes en predicción eólica incluyen:
+	
 	\begin{itemize}
-		\item Integración de múltiples fuentes de datos (satélites, radares, estaciones meteorológicas)
-		\item Aplicación de técnicas de transfer learning para adaptar modelos a nuevos sitios
-		\item Desarrollo de modelos probabilísticos que proporcionan intervalos de confianza
-		\item Implementación de sistemas de alerta temprana basados en machine learning
-		\item Aplicación de técnicas de interpretabilidad como SHAP para explicar predicciones
+		\item Fusión de múltiples fuentes de datos (satélite, estaciones, reanálisis).
+		\item Uso de \textit{transfer learning} para generalizar modelos a nuevos parques.
+		\item Modelos probabilísticos que predicen intervalos, no solo valores puntuales.
+		\item Incorporación de técnicas interpretables como SHAP para explicar predicciones.
+		\item Automatización de pipelines con actualización diaria y autoentrenamiento.
 	\end{itemize}
+	
+	Estas tendencias están alineadas con nuestro trabajo, que propone un enfoque modular, explicable (mediante importancia de variables) y operativo, capaz de integrarse en un flujo de producción energética diaria.
+	
+	\subsection{Otros Estudios Relevantes}
+	
+	Además de los trabajos ya discutidos, se revisaron otros 13 estudios significativos que complementan y refuerzan la metodología adoptada en esta investigación. A continuación, se resumen sus principales aportes agrupados por tipo de contribución:
+	
+	\textbf{Modelos comparativos y validaciones extensas}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Bouabdallaoui et al. (2023)} comparan cuatro modelos de ML, destacando el rendimiento de RF y ANN en horizontes cortos.
+		\item \textbf{Qureshi et al. (2023)} muestran que GRU supera a ARIMA significativamente (\(R^2 = 0.89\)), confirmando la efectividad de redes recurrentes.
+		\item \textbf{Rathnayake et al. (2025)} evalúan 24 algoritmos y resaltan el stacking y bagging como enfoques robustos.
+	\end{itemize}
+	
+	\textbf{Técnicas avanzadas de ensamblado y optimización}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Huang et al. (2023)} implementan ensamblados optimizados por enjambre (PSO, SSA, WOA), mejorando hasta un 31\% sobre modelos base.
+		\item \textbf{Huang et al. (2023b)} proponen un ensamblado con 25 submodelos y reducción de error de hasta 12–31\%.
+	\end{itemize}
+	
+	\textbf{Modelos de redes profundas}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Ayene y Yibre (2024)} usan LSTM, Bi-LSTM y GRU con datos cada 5 minutos, logrando \(R^2 > 0.97\).
+		\item \textbf{Jonkers et al. (2024)} desarrollan una CNN profunda para predicción regional y probabilística con gran precisión.
+	\end{itemize}
+	
+	\textbf{Preprocesamiento y calidad de datos}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Cococcioni et al. (2012)} enfatizan el rol del preprocesamiento al predecir en instalaciones solares usando MLP y SVR.
+		\item \textbf{Kirk-Davidoff (2012)} refuerza la comprensión física del viento, útil para filtrar valores atípicos y anomalías.
+	\end{itemize}
+	
+	\textbf{Revisiones y tendencias metodológicas}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Chen y Folly (2018)}, \textbf{Tsai et al. (2023)} y \textbf{Tuncar et al. (2024)} presentan revisiones de técnicas de predicción, clasificando por horizonte, modelo y aplicación.
+		\item \textbf{AlShafeey y Csaki (2024)} introducen un modelo adaptativo que selecciona dinámicamente el mejor algoritmo, enfoque inspirador para diseños futuros.
+	\end{itemize}
+	
+	\textbf{Complementos específicos}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{2024 - CNN-BiLSTM + AR}: modelo híbrido secuencial con autoregresión, afín a nuestro enfoque combinado MLP + regresión.
+		\item \textbf{2024 - Adaptive ML}: propone un sistema dinámico multi-algoritmo, alineado con nuestras decisiones de ponderación.
+		\item \textbf{2021 - WRF en Brasil}: estudio basado en WRF que motiva el uso de fuentes meteorológicas de alta resolución.
+	\end{itemize}
+	
+	Estos estudios sustentan las decisiones metodológicas tomadas en nuestro enfoque, desde el diseño del pipeline hasta la validación de ensembles y detección de anomalías.
+
+
+
 	
 	\section{Metodología}
 	
