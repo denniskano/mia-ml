@@ -38,13 +38,13 @@ def load_and_merge(nrows=None):
     logging.info("Leyendo archivos de datos...")
     df_nasa = pd.read_csv('datos_centro_nasapower.csv', parse_dates=['time'], nrows=nrows)
     df_open = pd.read_csv('datos_centro_openmeteo.csv', parse_dates=['time'], nrows=nrows)
-    df_ref = pd.read_excel('Data_PotenciaPLOM_Historico.xlsx', nrows=nrows)
+    df_ref = pd.read_excel('Data_PotenciaPEol_Historico.xlsx', nrows=nrows)
     rename_dict = {
         "Tiempo": "time",
         "WindFarm - Velocidad viento instantánea parque": "wind_speed_90m_ref",
-        "UMA - Potencia activa Total": "Pot_parque",
-        "UMA - Número AEGs en Marcha & Listo": "WTG_disponibles",
-        "UMA - Número AEGs Limitados & en modo degradado": "WTG_invalidos"
+        "Potencia activa Total": "Pot_parque",
+        "Número AEGs en Marcha & Listo": "WTG_disponibles",
+        "Número AEGs Limitados & en modo degradado": "WTG_invalidos"
     }
     df_ref = df_ref.rename(columns=rename_dict)
     df_ref['Pot_parque_escaled'] = 1e-3 * df_ref['Pot_parque'] / df_ref['WTG_disponibles']
