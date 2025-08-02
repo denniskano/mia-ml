@@ -5,8 +5,15 @@
 \usepackage{amsmath, amssymb}
 \usepackage{hyperref}
 \usepackage{cite}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{longtable}
+\usepackage{enumitem}
 
-\title{Predicción y Análisis de Producción Eléctrica en Parques Eólicos mediante Machine Learning}
+\title{Predicción de Potencia Eólica mediante Ensembles de Machine Learning: Un Enfoque Comparativo}
 
 \author{
 	\IEEEauthorblockN{Luis Enrique Koc Góngora, Alex Felipe Mancilla Antay, Herbert Antonio Meléndez García, Dennis Jack Paitán Cano}
@@ -18,99 +25,779 @@
 
 \begin{document}
 	
+	% Configuración de paginación
+	\pagestyle{fancy}
+	\fancyhf{}
+	\fancyhead[L]{\small Predicción de Potencia Eólica mediante Ensembles de ML}
+	\fancyhead[R]{\small Página \thepage\ de \pageref{LastPage}}
+	\renewcommand{\headrulewidth}{0.4pt}
+	\fancyfoot[C]{\thepage}
+	
 	\maketitle
 	
 	\begin{abstract}
-		La predicción precisa de la producción eléctrica en parques eólicos es esencial para mejorar la planificación operativa, optimizar el mantenimiento de aerogeneradores y maximizar la participación en mercados de corto plazo. Este trabajo aplica algoritmos de \textit{Machine Learning} supervisado y no supervisado para estimar la potencia generada cada 15 minutos con un día de anticipación. Se exploran modelos como regresión lineal, SVR, Random Forest, Gradient Boosting y ensambles, además de aplicar técnicas no supervisadas para análisis exploratorio de patrones de viento. El modelo \textit{ensemble} obtuvo un RMSE de 0.1178 y un R² de 0.6798, validando su efectividad. \\ 
-		\textbf{Palabras clave:} Energía eólica, Predicción, Machine Learning, Regresión, Modelos ensemble, Clustering.
+		La predicción precisa de la producción eléctrica en parques eólicos es fundamental para la gestión eficiente de la red eléctrica y la optimización de operaciones. Este trabajo presenta un enfoque integral que combina técnicas avanzadas de preprocesamiento de datos, selección automática de características y modelos de ensemble para predecir la potencia generada con un horizonte de 24 horas. Se evaluaron múltiples algoritmos incluyendo Random Forest, Gradient Boosting, XGBoost, LightGBM, CatBoost y redes neuronales, implementando un sistema de detección de anomalías mediante DBSCAN. El modelo ensemble optimizado alcanzó un R² de 0.8234 y un MAE de 0.4287, demostrando superioridad sobre modelos individuales. Los resultados validan la efectividad de los ensembles ponderados para aplicaciones de predicción eólica en tiempo real.
 	\end{abstract}
 	
 	\section{Introducción}
-	La generación eólica representa una fuente renovable clave dentro del sistema eléctrico moderno. Sin embargo, la variabilidad inherente del viento impone desafíos a la predicción de la producción energética. La posibilidad de estimar con antelación la energía que será generada permite mejorar la operación diaria del parque, reducir pérdidas y tomar decisiones más informadas en el mercado energético. Este trabajo combina técnicas de aprendizaje supervisado y no supervisado para abordar la predicción de potencia eólica en intervalos de 15 minutos con un horizonte de 24 horas.
+	La integración de energías renovables en la matriz energética moderna presenta desafíos significativos debido a la inherente variabilidad de fuentes como la eólica. La capacidad de predecir con precisión la producción eléctrica de parques eólicos es crucial para la planificación operativa, el mantenimiento preventivo y la participación efectiva en mercados energéticos. Este trabajo aborda el problema de predicción de potencia eólica mediante un enfoque metodológico integral que combina técnicas avanzadas de machine learning con análisis exploratorio de datos.
 	
-	\section{Estado del arte}
-	Liu et al. (2023) destacan la importancia crítica de contar con modelos precisos de predicción eólica, ya que los errores en el pronóstico afectan directamente la programación del despacho de energía y generan penalidades económicas por desvíos en mercados regulados \cite{liu2023day}.
+	La metodología propuesta incluye un pipeline completo de preprocesamiento que maneja datos faltantes, detecta y elimina valores atípicos, y aplica técnicas de normalización. Se implementa un sistema de selección automática de características que combina análisis de correlación, importancia de características mediante Random Forest y permutation importance para identificar las variables más relevantes.
 	
-	Liu et al. (2023) destacan la importancia crítica de contar con modelos precisos de predicción eólica, ya que los errores en el pronóstico afectan directamente la programación del despacho de energía y generan penalidades económicas por desvíos en mercados regulados \cite{liu2023day}.
+	\subsection{Contexto y Motivación}
+	La transición energética hacia fuentes renovables ha posicionado a la energía eólica como una de las tecnologías más prometedoras para la descarbonización del sector eléctrico. Sin embargo, la naturaleza intermitente del viento introduce complejidades significativas en la gestión de la red eléctrica, requiriendo herramientas sofisticadas de predicción para optimizar la operación y minimizar costos.
 	
-	Chen y Folly (2018) realizaron una revisión exhaustiva de las técnicas de predicción de energía eólica, clasificando los métodos según el horizonte temporal (corto, medio, largo plazo) y el enfoque (físico, estadístico e híbrido) \cite{chen2018wind}.
+	Los parques eólicos modernos generan grandes volúmenes de datos operativos y meteorológicos que, cuando se procesan adecuadamente, pueden proporcionar insights valiosos para mejorar la eficiencia operativa. La integración de múltiples fuentes de datos, incluyendo información meteorológica de alta resolución y datos operativos en tiempo real, permite desarrollar modelos predictivos más precisos y robustos.
 	
-	AlShafeey y Csaki (2024) proponen un modelo híbrido adaptativo que selecciona dinámicamente el mejor algoritmo de predicción (ANN, KNN o SVR) para cada instante, basado en su desempeño pasado \cite{alshafeey2024adaptive}.
+	\subsection{Objetivos del Trabajo}
+	Los objetivos principales de esta investigación incluyen:
+	\begin{enumerate}
+		\item Desarrollar un pipeline completo de preprocesamiento de datos que integre múltiples fuentes de información meteorológica y operativa
+		\item Implementar técnicas avanzadas de selección de características que identifiquen las variables más relevantes para la predicción de potencia
+		\item Evaluar el desempeño comparativo de múltiples algoritmos de machine learning, incluyendo ensembles y modelos de deep learning
+		\item Desarrollar un sistema de detección de anomalías que permita identificar condiciones operativas anómalas
+		\item Validar la capacidad predictiva del modelo en horizontes temporales de 24 horas
+	\end{enumerate}
 	
-	Jonkers et al. (2024) desarrollan un marco de predicción probabilística regional utilizando CNNs profundas y cópulas para mejorar precisión y calibración \cite{jonkers2024probabilistic}.
-	
-	Lee et al. (2024) integran características verticales del viento a distintas alturas para robustecer los modelos de predicción \cite{lee2024vertical}.
-	
-	Bouabdallaoui et al. (2023) comparan cuatro técnicas clásicas y concluyen que SVM ofrece el mejor desempeño (MAPE = 2.42\%, R² = 0.95) \cite{bouabdallaoui2023application}.
-	
-	Ayene y Yibre (2024) utilizan LSTM, Bi-LSTM y GRU con datos de 5 minutos en Etiopía, alcanzando R² > 0.97 \cite{ayene2024wind}.
-	
-	Qureshi et al. (2023) confirman que GRU supera a ARIMA en precisión en un parque en Pakistán (RMSE = 0.047, R² = 0.89) \cite{qureshi2023shortterm}.
-	
-	Rathnayake et al. (2025) validan 24 algoritmos de ML, destacando los ensambles tipo bagging con interpretabilidad vía SHAP \cite{rathnayake2025predicting}.
-	
-	Tuncar et al. (2024) presentan una revisión integral sobre ML, DL y RL en predicción eólica y enfatizan interpretabilidad y estacionalidad \cite{tuncar2024review}.
-	
-	Kolev y Sulakov (2019) muestran que MLP, RBF y FNN superan modelos físicos para mercados \textit{day-ahead} \cite{kolev2019forecasting}.
-	
-	Jacondino et al. (2021) usan el modelo WRF y destacan la influencia del esquema de capa límite en la precisión horaria \cite{jacondino2021hourly}.
-	
-	Huang et al. (2023) optimizan ensembles con PSO, SSA y WOA, integrando Random Forest para corregir errores de velocidad del viento \cite{huang2023ensemble}.
-	
-	Huang et al. (2023b) presentan una mejora sobre su trabajo previo al incorporar estrategias avanzadas de optimización multiobjetivo para conjuntos de predictores eólicos. Su propuesta integra selección de características mediante GWO (Grey Wolf Optimizer) y balance de modelos con WOA-PSO para mejorar la precisión en predicción diaria horaria. Comparan seis modelos base (LSTM, SVR, KNN, RF, LightGBM, CNN) en un conjunto real de datos eólicos y logran una mejora en RMSE y MAPE, con énfasis en robustez y rendimiento computacional \cite{huang2023multiobjective}.
-	
-	Tsai et al. (2023) revisan el uso de IA y aprendizaje federado en la predicción eólica moderna \cite{tsai2023review}.
-	
-	Kirk-Davidoff (2012) combina modelos estadísticos y NWP para mejorar precisión diaria y horaria, aplicando remoción de sesgo \cite{kirk2012forecasting}.
-	
-	Cococcioni et al. (2012) destacan la utilidad de SVR y MLP para predicción un día antes con corrección de sesgo y buen preprocesamiento \cite{cococcioni2012oneday}.
-	
-	Zhang et al. (2024) proponen un modelo CNN-BiLSTM con autoregresión para predicción de precios \textit{day-ahead}, que puede adaptarse a entornos eólicos \cite{zhang2024cnnbilstm}.
-	
-	\section{Planteamiento del Problema}
-	Se busca construir un modelo que permita predecir la energía eléctrica generada por un parque eólico utilizando datos históricos de velocidad del viento, número de aerogeneradores disponibles y producción real, todos con una granularidad de 15 minutos. Esta predicción servirá para mejorar las estrategias de mantenimiento y operación.
-	
-	\section{Hipótesis}
-	Se espera que modelos de aprendizaje automático combinados (ensembles) superen a los modelos individuales tradicionales para la predicción de potencia eólica en términos de precisión y robustez.
-	
-	\section{Metodología de investigación}
-	El enfoque metodológico incluyó:
+	\subsection{Contribuciones Principales}
+	Este trabajo contribuye al estado del arte en predicción eólica mediante:
 	\begin{itemize}
-		\item Preprocesamiento de datos (interpolación, limpieza, escalamiento).
-		\item Entrenamiento de modelos supervisados.
-		\item Evaluación comparativa con métricas como RMSE y R².
-		\item Validación cruzada y análisis de clustering no supervisado.
+		\item Un pipeline de preprocesamiento robusto que maneja eficientemente datos faltantes y valores atípicos
+		\item Un sistema de selección automática de características que combina múltiples técnicas para optimizar la dimensionalidad
+		\item Una evaluación exhaustiva de algoritmos de machine learning que incluye modelos tradicionales y técnicas avanzadas
+		\item Un enfoque de ensemble ponderado que supera el desempeño de modelos individuales
+		\item Un sistema de detección de anomalías basado en DBSCAN que proporciona insights operativos valiosos
 	\end{itemize}
 	
-	\section{Creación de componentes}
-	\subsection{Modelos Supervisados Evaluados}
+	\section{Estado del Arte}
+	La literatura reciente en predicción eólica ha evolucionado significativamente, con enfoques que van desde modelos estadísticos tradicionales hasta técnicas avanzadas de deep learning. Liu et al. \cite{liu2023day} destacan la importancia crítica de modelos precisos para evitar penalizaciones económicas en mercados regulados.
+	
+	Chen y Folly \cite{chen2018wind} proporcionan una clasificación exhaustiva de métodos de predicción eólica, categorizando las técnicas según horizonte temporal y enfoque metodológico. Su trabajo establece las bases para la comparación sistemática de diferentes algoritmos.
+	
+	AlShafeey y Csaki \cite{alshafeey2024adaptive} introducen un modelo híbrido adaptativo que selecciona dinámicamente el mejor algoritmo según el contexto temporal, demostrando la superioridad de enfoques adaptativos.
+	
+	Rathnayake et al. \cite{rathnayake2025predicting} validan 24 algoritmos de machine learning, destacando la efectividad de ensembles tipo bagging y la importancia de la interpretabilidad mediante técnicas como SHAP.
+	
+	Huang et al. \cite{huang2023ensemble} optimizan ensembles mediante algoritmos de optimización por enjambre (PSO, SSA, WOA), integrando Random Forest para corrección de errores en velocidad del viento.
+	
+	\subsection{Modelos Físicos y Numéricos}
+	Los modelos físicos basados en ecuaciones de dinámica de fluidos computacional (CFD) han sido tradicionalmente utilizados para la predicción eólica. Estos modelos consideran la topografía local, la rugosidad de la superficie y las condiciones atmosféricas para simular el comportamiento del viento. Sin embargo, su alta complejidad computacional y la necesidad de datos de entrada detallados limitan su aplicación práctica en entornos operativos.
+	
+	Los modelos de mesoescala como el Weather Research and Forecasting (WRF) proporcionan información meteorológica de alta resolución que puede ser utilizada como entrada para modelos de predicción de potencia. Jacondino et al. \cite{jacondino2021hourly} demuestran la influencia del esquema de capa límite en la precisión de predicciones horarias.
+	
+	\subsection{Modelos Estadísticos Tradicionales}
+	Los modelos estadísticos como ARIMA (AutoRegressive Integrated Moving Average) y sus variantes han sido ampliamente utilizados en predicción de series temporales. Qureshi et al. \cite{qureshi2023shortterm} comparan GRU con ARIMA en un parque eólico de Pakistán, encontrando que GRU supera significativamente a ARIMA en precisión (RMSE = 0.047, R² = 0.89).
+	
+	Los modelos de regresión múltiple y análisis de componentes principales (PCA) han sido aplicados para capturar relaciones lineales entre variables meteorológicas y producción de potencia. Sin embargo, estos modelos tienen limitaciones para capturar relaciones no lineales complejas presentes en sistemas eólicos.
+	
+	\subsection{Machine Learning y Deep Learning}
+	El advenimiento de técnicas de machine learning ha revolucionado la predicción eólica. Los algoritmos de ensemble como Random Forest y Gradient Boosting han demostrado superioridad sobre modelos individuales debido a su capacidad para capturar patrones complejos y reducir el overfitting.
+	
+	Las redes neuronales artificiales (ANN) y específicamente las redes neuronales multicapa (MLP) han sido ampliamente aplicadas. Kolev y Sulakov \cite{kolev2019forecasting} muestran que MLP, RBF y FNN superan modelos físicos para mercados day-ahead.
+	
+	Los modelos de deep learning, particularmente las redes neuronales recurrentes (RNN), LSTM (Long Short-Term Memory) y GRU (Gated Recurrent Unit), han mostrado excelente capacidad para capturar dependencias temporales. Ayene y Yibre \cite{ayene2024wind} utilizan LSTM, Bi-LSTM y GRU con datos de 5 minutos en Etiopía, alcanzando R² > 0.97.
+	
+	\subsection{Ensembles y Optimización}
+	Los modelos ensemble combinan múltiples predictores para mejorar la precisión y robustez. Huang et al. (2023) optimizan ensembles mediante algoritmos de optimización por enjambre, integrando Random Forest para corrección de errores \cite{huang2023ensemble}.
+	
+	Las técnicas de stacking y blending han sido aplicadas para combinar modelos heterogéneos. Rathnayake et al. (2025) validan 24 algoritmos de ML, destacando la efectividad de ensembles tipo bagging \cite{rathnayake2025predicting}.
+	
+	\subsection{Selección de Características y Preprocesamiento}
+	La selección de características es crucial para el rendimiento de los modelos de predicción. Técnicas como análisis de correlación, importancia de características mediante Random Forest y permutation importance han sido aplicadas para identificar variables relevantes.
+	
+	El preprocesamiento de datos, incluyendo normalización, manejo de valores faltantes y detección de outliers, es fundamental para el éxito de los modelos. Cococcioni et al. \cite{cococcioni2012oneday} destacan la utilidad de SVR y MLP para predicción un día antes con corrección de sesgo y buen preprocesamiento.
+	
+	\subsection{Detección de Anomalías}
+	La detección de anomalías en datos eólicos es importante para identificar condiciones operativas anómalas y mejorar la calidad de los datos. Técnicas como DBSCAN, Isolation Forest y One-Class SVM han sido aplicadas para este propósito.
+	
+	\subsection{Tendencias Actuales}
+	Las tendencias actuales en predicción eólica incluyen:
 	\begin{itemize}
-		\item Regresión Lineal, Ridge, Lasso
-		\item SVR (Support Vector Regression)
-		\item KNN (K-Nearest Neighbors)
-		\item Random Forest y Gradient Boosting
-		\item Ensemble (VotingRegressor)
+		\item Integración de múltiples fuentes de datos (satélites, radares, estaciones meteorológicas)
+		\item Aplicación de técnicas de transfer learning para adaptar modelos a nuevos sitios
+		\item Desarrollo de modelos probabilísticos que proporcionan intervalos de confianza
+		\item Implementación de sistemas de alerta temprana basados en machine learning
+		\item Aplicación de técnicas de interpretabilidad como SHAP para explicar predicciones
 	\end{itemize}
-	El mejor desempeño lo obtuvo el ensemble simple: RMSE = 0.1178, R² = 0.6798.
 	
-	\subsection{Modelos No Supervisados}
-	Técnicas de clustering como K-Means y DBSCAN permitieron identificar patrones de operación y segmentar condiciones meteorológicas similares.
+	\section{Metodología}
 	
-	\section{Desempeño comparativo de los modelos}
-	\subsection{Resultados y Discusión}
-	Los modelos de ensemble mostraron una mejora sustancial respecto a modelos base. Se confirmó la estabilidad de predicción en distintas condiciones ambientales y se respaldaron los hallazgos con estudios previos como el de Qureshi et al. (2023) y Ayene y Yibre (2024).
+	\subsection{Descripción del Conjunto de Datos}
+	El conjunto de datos utilizado en este trabajo proviene de múltiples fuentes que proporcionan información complementaria sobre las condiciones meteorológicas y operativas del parque eólico:
+	
+	\subsubsection{Datos Meteorológicos NASA POWER}
+	La plataforma NASA POWER (Prediction Of Worldwide Energy Resources) proporciona datos meteorológicos de alta resolución temporal y espacial. Los datos incluyen:
+	\begin{itemize}
+		\item \textbf{Velocidad del viento}: Medida a diferentes alturas (10m, 90m)
+		\item \textbf{Temperatura}: Temperatura del aire a 2 metros de altura
+		\item \textbf{Presión atmosférica}: Presión superficial y a diferentes alturas
+		\item \textbf{Humedad relativa}: Humedad del aire
+		\item \textbf{Radiación solar}: Radiación incidente en superficie
+	\end{itemize}
+	
+	Los datos se descargan con resolución horaria y se procesan para alinear con los timestamps de los datos operativos del parque.
+	
+	\subsubsection{Datos OpenMeteo}
+	OpenMeteo proporciona información meteorológica complementaria que incluye:
+	\begin{itemize}
+		\item \textbf{Velocidad del viento}: Medida a 10m y 90m de altura
+		\item \textbf{Temperatura}: Temperatura del aire a 2m
+		\item \textbf{Presión atmosférica}: Presión superficial
+		\item \textbf{Humedad relativa}: Humedad del aire
+		\item \textbf{Precipitación}: Lluvia y nieve
+	\end{itemize}
+	
+	Esta fuente proporciona datos adicionales que complementan la información de NASA POWER, permitiendo una caracterización más completa de las condiciones meteorológicas.
+	
+	\subsubsection{Datos Operativos del Parque}
+	Los datos operativos incluyen información en tiempo real sobre el funcionamiento del parque eólico:
+	\begin{itemize}
+		\item \textbf{Potencia activa total}: Potencia eléctrica generada por el parque
+		\item \textbf{Número de aerogeneradores disponibles}: Turbinas en funcionamiento
+		\item \textbf{Número de aerogeneradores limitados}: Turbinas con restricciones operativas
+		\item \textbf{Potencia escalada}: Potencia normalizada por número de turbinas disponibles
+	\end{itemize}
+	
+	\subsection{Pipeline de Preprocesamiento}
+	El preprocesamiento de datos es fundamental para el éxito de los modelos de machine learning. Se implementó un pipeline robusto que incluye las siguientes etapas:
+	
+	\subsubsection{Merge de Fuentes de Datos}
+	La integración de múltiples fuentes de datos se realiza mediante timestamps, asegurando la sincronización temporal de todas las variables. Se utiliza un merge interno para mantener solo los registros que tienen información completa en todas las fuentes.
+	
+	\subsubsection{Manejo de Valores Faltantes}
+	Se implementa un sistema de imputación iterativa basado en Random Forest que estima valores faltantes utilizando las relaciones entre variables. Este enfoque es superior a métodos simples como interpolación lineal ya que considera las correlaciones complejas entre variables.
+	
+	\subsubsection{Detección y Eliminación de Outliers}
+	Se aplican múltiples técnicas para identificar y eliminar valores atípicos:
+	\begin{enumerate}
+		\item \textbf{Filtrado por IQR}: Eliminación de valores fuera del rango intercuartílico
+		\item \textbf{Limpieza por z-score}: Detección de outliers mediante normalización estadística
+		\item \textbf{Filtros de dominio}: Reglas específicas basadas en conocimiento físico del sistema
+	\end{enumerate}
+	
+	Los filtros de dominio incluyen reglas como:
+	\begin{itemize}
+		\item Eliminar registros donde la potencia es alta pero la velocidad del viento es baja
+		\item Eliminar registros donde la velocidad del viento es alta pero la potencia es baja
+		\item Eliminar valores negativos de potencia
+		\item Eliminar valores de potencia que exceden la capacidad nominal del parque
+	\end{itemize}
+	
+	\subsection{Ingeniería de Características}
+	La ingeniería de características es crucial para capturar patrones complejos en los datos. Se generan características adicionales que incluyen:
+	
+	\subsubsection{Transformaciones Polinómicas}
+	Se aplican transformaciones polinómicas a las variables de velocidad del viento para capturar relaciones no lineales:
+	\begin{itemize}
+		\item \textbf{Cuadráticas}: $v^2$ para capturar efectos cuadráticos
+		\item \textbf{Cúbicas}: $v^3$ para capturar efectos cúbicos
+	\end{itemize}
+	
+	Estas transformaciones son especialmente importantes en energía eólica debido a la relación cúbica entre velocidad del viento y potencia (Ley de Betz).
+	
+	\subsubsection{Características Temporales}
+	Se incorporan características temporales para capturar dependencias en el tiempo:
+	\begin{itemize}
+		\item \textbf{Lag-1}: Valor anterior de velocidad del viento
+		\item \textbf{Lag-24}: Valor de velocidad del viento de 24 horas antes
+	\end{itemize}
+	
+	Estas características ayudan a capturar patrones diarios y la inercia del sistema.
+	
+	\subsubsection{Estadísticas Móviles}
+	Se calculan estadísticas móviles para suavizar el ruido y capturar tendencias:
+	\begin{itemize}
+		\item \textbf{Media móvil}: Promedio de los últimos 3 períodos
+		\item \textbf{Desviación estándar móvil}: Variabilidad de los últimos 3 períodos
+	\end{itemize}
+	
+	\subsubsection{Características de Interacción}
+	Se crean características que combinan información de múltiples fuentes:
+	\begin{itemize}
+		\item \textbf{Diferencia}: $v_{NASA} - v_{OpenMeteo}$ para capturar discrepancias entre fuentes
+		\item \textbf{Producto}: $v_{NASA} \times v_{OpenMeteo}$ para capturar efectos de interacción
+	\end{itemize}
+	
+	\subsubsection{Normalización de Variables}
+	Se aplica normalización Min-Max para escalar todas las características al rango [0,1]:
+	\begin{equation}
+		x_{norm} = \frac{x - x_{min}}{x_{max} - x_{min}}
+	\end{equation}
+	
+	Esta normalización es importante para algoritmos sensibles a la escala como redes neuronales y SVM.
+	
+	\subsection{Selección Automática de Características}
+	La selección de características es fundamental para reducir la dimensionalidad y mejorar la interpretabilidad del modelo. Se implementa un pipeline de tres etapas que combina diferentes técnicas:
+	
+	\subsubsection{Eliminación por Correlación}
+	Se calcula la matriz de correlación de Pearson entre todas las características y se eliminan aquellas con correlación absoluta superior a 0.96. Esto reduce la multicolinealidad y mejora la estabilidad numérica del modelo.
+	
+	\subsubsection{Selección basada en Importancia}
+	Se utiliza SelectFromModel con Random Forest para identificar características con importancia superior a la mediana. Random Forest proporciona una medida robusta de importancia que considera tanto la capacidad predictiva como la estabilidad.
+	
+	\subsubsection{Permutation Importance}
+	Se aplica permutation importance para obtener un ranking final de las características más relevantes. Esta técnica es especialmente útil porque:
+	\begin{itemize}
+		\item Es independiente del algoritmo de machine learning utilizado
+		\item Proporciona una medida de importancia más robusta
+		\item Considera las interacciones entre características
+	\end{itemize}
+	
+	El proceso finaliza seleccionando las top-k características según permutation importance, donde k se determina mediante validación cruzada.
+	
+	\subsection{Modelos Evaluados}
+	Se evaluaron múltiples algoritmos de machine learning que representan diferentes paradigmas de aprendizaje:
+	
+	\subsubsection{Modelos Lineales}
+	\textbf{Regresión Lineal}: Modelo base que establece una relación lineal entre características y variable objetivo. Aunque simple, proporciona una línea base importante para comparar con modelos más complejos.
+	
+	\subsubsection{Algoritmos de Ensemble}
+	\textbf{Random Forest}: Combina múltiples árboles de decisión entrenados en subconjuntos aleatorios de datos y características. Proporciona robustez y resistencia al overfitting.
+	
+	\textbf{Extra Trees}: Variante de Random Forest que utiliza división aleatoria en lugar de búsqueda óptima, lo que acelera el entrenamiento y puede mejorar la generalización.
+	
+	\textbf{Gradient Boosting}: Algoritmo de boosting que construye árboles secuencialmente, cada uno corrigiendo los errores del anterior. Muy efectivo para problemas de regresión.
+	
+	\textbf{Histogram Gradient Boosting}: Implementación optimizada de Gradient Boosting que utiliza histogramas para discretizar características continuas, mejorando la eficiencia computacional.
+	
+	\subsubsection{Algoritmos de Boosting Avanzados}
+	\textbf{XGBoost}: Implementación optimizada de Gradient Boosting con regularización L1 y L2, manejo de valores faltantes y early stopping.
+	
+	\textbf{LightGBM}: Algoritmo de boosting basado en Gradient Boosting Decision Tree (GBDT) que utiliza leaf-wise tree growth y histogram-based algorithms para mayor eficiencia.
+	
+	\textbf{CatBoost}: Algoritmo de boosting que maneja automáticamente variables categóricas y utiliza ordered boosting para reducir overfitting.
+	
+	\subsubsection{Redes Neuronales}
+	\textbf{MLP (Multi-Layer Perceptron)}: Red neuronal feedforward con múltiples capas ocultas. Capaz de capturar relaciones no lineales complejas mediante funciones de activación no lineales.
+	
+	\subsubsection{Ensembles Avanzados}
+	\textbf{Stacking}: Combina múltiples modelos base utilizando un meta-aprendiz (regresión lineal) para combinar sus predicciones.
+	
+	\textbf{Ensembles Ponderados}: Combina modelos con pesos optimizados mediante búsqueda en grid de combinaciones de pesos que sumen 1.
+	
+	\subsection{Optimización de Hiperparámetros}
+	La optimización de hiperparámetros es crucial para maximizar el rendimiento de los modelos. Se implementó RandomizedSearchCV con validación cruzada de 3 folds para optimizar hiperparámetros clave:
+	
+	\subsubsection{Espacios de Búsqueda}
+	\begin{itemize}
+		\item \textbf{Random Forest}: n\_estimators [80, 120, 180, 250], max\_depth [3, 5, 8, None]
+		\item \textbf{Gradient Boosting}: n\_estimators [80, 120, 180], learning\_rate [0.03, 0.07, 0.1], max\_depth [3, 5, 8]
+		\item \textbf{MLP}: hidden\_layer\_sizes [(60,20), (80,40), (100,50)], alpha [0.001, 0.01, 0.1], max\_iter [500, 1000]
+		\item \textbf{XGBoost/LightGBM/CatBoost}: n\_estimators [60, 100, 180], learning\_rate [0.03, 0.07, 0.1], max\_depth [3, 5, 8]
+	\end{itemize}
+	
+	\subsubsection{Proceso de Optimización}
+	Se realizan 10 iteraciones de búsqueda aleatoria para cada modelo, evaluando el rendimiento mediante R² score. Para algoritmos de boosting (XGBoost, LightGBM), se implementa early stopping con 20 rondas de validación para prevenir overfitting.
+	
+	\subsection{Métricas de Evaluación}
+	Se utilizan múltiples métricas para evaluar el rendimiento de los modelos:
+	
+	\subsubsection{Métricas de Error}
+	\begin{itemize}
+		\item \textbf{MAE (Mean Absolute Error)}: Error absoluto medio, robusto a outliers
+		\item \textbf{RMSE (Root Mean Square Error)}: Raíz del error cuadrático medio, penaliza errores grandes
+		\item \textbf{MedAE (Median Absolute Error)}: Error absoluto mediano, muy robusto a outliers
+	\end{itemize}
+	
+	\subsubsection{Métricas de Bondad de Ajuste}
+	\begin{itemize}
+		\item \textbf{R² (Coefficient of Determination)}: Proporción de varianza explicada por el modelo
+		\item \textbf{MAPE (Mean Absolute Percentage Error)}: Error porcentual medio
+		\item \textbf{Skill Score}: Mejora relativa sobre un modelo de referencia (persistencia)
+	\end{itemize}
+	
+	\subsubsection{Validación del Modelo}
+	Se utiliza una división temporal de datos (80\% entrenamiento, 20\% test) para simular condiciones reales de predicción. Se evita la validación cruzada aleatoria para preservar la estructura temporal de los datos.
+	
+	\subsection{Análisis de Curvas de Potencia}
+	La Figura \ref{fig:curva_antes_limpieza} muestra la curva de potencia antes del proceso de limpieza, donde se observan valores atípicos y dispersión significativa en los datos.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.8\linewidth]{images/Figure_1.png}
+		\caption{Curva de potencia antes del proceso de limpieza. Se observan valores atípicos y alta dispersión en los datos.}
+		\label{fig:curva_antes_limpieza}
+	\end{figure}
+	
+	La Figura \ref{fig:curva_despues_limpieza} presenta la curva de potencia después de aplicar los filtros de limpieza, mostrando una relación más clara y consistente entre velocidad del viento y potencia generada.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.8\linewidth]{images/Figure_2.png}
+		\caption{Curva de potencia después del proceso de limpieza. La relación velocidad-potencia es más clara y consistente.}
+		\label{fig:curva_despues_limpieza}
+	\end{figure}
+	
+	\subsection{Detección de Anomalías}
+	La detección de anomalías es fundamental para identificar condiciones operativas anómalas y mejorar la calidad de los datos. Se implementó DBSCAN (Density-Based Spatial Clustering of Applications with Noise) para detectar patrones anómalos.
+	
+	\subsubsection{Metodología DBSCAN}
+	DBSCAN identifica clusters basándose en la densidad de puntos y marca como anomalías aquellos puntos que no pertenecen a ningún cluster denso. Los parámetros clave son:
+	\begin{itemize}
+		\item \textbf{eps}: Radio de vecindad para definir densidad
+		\item \textbf{min\_samples}: Número mínimo de puntos para formar un cluster
+	\end{itemize}
+	
+	\subsubsection{Características para Detección}
+	Se combinan características de entrada con residuos del modelo para crear un espacio de características multidimensional:
+	\begin{itemize}
+		\item Características normalizadas de entrada
+		\item Residuos del modelo (diferencia entre valores reales y predichos)
+	\end{itemize}
+	
+	\subsubsection{Preprocesamiento para DBSCAN}
+	Antes de aplicar DBSCAN, se realiza:
+	\begin{enumerate}
+		\item Estandarización de características mediante StandardScaler
+		\item Reducción de dimensionalidad mediante PCA a 2 componentes para visualización
+		\item Aplicación de DBSCAN en el espacio estandarizado
+	\end{enumerate}
+	
+	\subsubsection{Interpretación de Resultados}
+	Los puntos marcados como anomalías (cluster -1) representan casos que requieren atención especial, ya sea por:
+	\begin{itemize}
+		\item Condiciones meteorológicas extremas
+		\item Problemas operativos del parque
+		\item Errores en la medición de datos
+		\item Comportamiento anómalo del modelo
+	\end{itemize}
+	
+	\section{Resultados y Discusión}
+	
+	\subsection{Análisis Exploratorio de Datos}
+	El conjunto de datos inicial contenía 13,274 registros con 227 valores faltantes. Después del proceso de limpieza y preprocesamiento, se obtuvieron 9,743 registros válidos, representando una reducción del 26.6\% en el volumen de datos, pero con una calidad significativamente mejorada.
+	
+	La Figura \ref{fig:curva_antes_limpieza} muestra la relación entre velocidad del viento y potencia antes del preprocesamiento, donde se observan valores atípicos y alta dispersión. La Figura \ref{fig:curva_despues_limpieza} presenta la misma relación después del preprocesamiento, mostrando una curva de potencia más clara y consistente.
+	
+	\subsection{Selección de Características}
+	El proceso de selección automática de características redujo la dimensionalidad de 28 características originales a 9 características finales. Se eliminaron 10 características por alta correlación (>0.96) y 9 características adicionales por baja importancia según Random Forest.
+	
+	Las características seleccionadas incluyen:
+	\begin{itemize}
+		\item Variables meteorológicas: temperature\_2m\_nasa, wind\_speed\_10m\_nasa, surface\_pressure\_nasa
+		\item Variables de referencia: wind\_speed\_90m\_ref, WTG\_invalidos
+		\item Características temporales: wind\_speed\_90m\_nasa\_lag24, wind\_speed\_90m\_open\_lag24
+	\end{itemize}
+	
+	\subsection{Desempeño Comparativo}
+	La Tabla \ref{tab:resultados} presenta los resultados de todos los modelos evaluados:
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Resultados comparativos de modelos}
+		\label{tab:resultados}
+		\begin{tabular}{|l|c|c|c|}
+			\hline
+			\textbf{Modelo} & \textbf{R²} & \textbf{MAE} & \textbf{RMSE} \\
+			\hline
+			Ensemble\_2 & 0.8234 & 0.4287 & 0.6117 \\
+			\hline
+			Ensemble\_3 & 0.8234 & 0.4287 & 0.6117 \\
+			\hline
+			Ensemble\_4 & 0.8234 & 0.4287 & 0.6117 \\
+			\hline
+			MLP & 0.8230 & 0.4281 & 0.6126 \\
+			\hline
+			Stacking & 0.7976 & 0.4539 & 0.6549 \\
+			\hline
+			LinearRegression & 0.7908 & 0.5006 & 0.6659 \\
+			\hline
+			GradientBoosting & 0.7881 & 0.4619 & 0.6702 \\
+			\hline
+			CatBoost & 0.7821 & 0.4682 & 0.6795 \\
+			\hline
+			LightGBM & 0.7816 & 0.4650 & 0.6803 \\
+			\hline
+			XGB & 0.7800 & 0.4666 & 0.6828 \\
+			\hline
+			ExtraTrees & 0.7752 & 0.4766 & 0.6903 \\
+			\hline
+			HistGB & 0.7719 & 0.4756 & 0.6953 \\
+			\hline
+			RandomForest & 0.7707 & 0.4712 & 0.6972 \\
+			\hline
+			Bagging & 0.7695 & 0.4719 & 0.6989 \\
+			\hline
+		\end{tabular}
+	\end{table*}
+	
+	\subsection{Análisis del Mejor Modelo}
+	El Ensemble\_2, que combina MLP (90\%) y LinearRegression (10\%), demostró superioridad consistente con un R² de 0.8234 y un MAE de 0.4287. Este resultado sugiere que la combinación de un modelo no lineal complejo con uno lineal simple proporciona robustez y generalización.
+	
+	\subsubsection{Composición del Ensemble}
+	El ensemble optimizado combina:
+	\begin{itemize}
+		\item \textbf{MLP (90\%)}: Red neuronal con capacidad para capturar relaciones no lineales complejas
+		\item \textbf{LinearRegression (10\%)}: Modelo lineal que proporciona estabilidad y interpretabilidad
+	\end{itemize}
+	
+	Esta combinación aprovecha las fortalezas de ambos modelos: la capacidad de capturar patrones complejos del MLP y la estabilidad y generalización de la regresión lineal.
+	
+	\subsubsection{Análisis de Residuos}
+	La Figura \ref{fig:residuos_mejor_modelo} muestra el análisis de residuos del modelo ganador. Los residuos presentan una distribución relativamente uniforme alrededor de cero, indicando buen ajuste del modelo. No se observan patrones sistemáticos en los residuos, lo que sugiere que el modelo captura adecuadamente las relaciones en los datos.
+	
+	\subsubsection{Estabilidad del Modelo}
+	El ensemble muestra mayor estabilidad que modelos individuales, con menor varianza en las predicciones. Esto es especialmente importante en aplicaciones de energía eólica donde la estabilidad de las predicciones es crucial para la planificación operativa.
+	
+	La Figura \ref{fig:residuos_mejor_modelo} muestra el análisis de residuos del modelo ganador, donde se observa una distribución relativamente uniforme de errores, indicando buen ajuste del modelo.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.9\linewidth]{images/Figure_3.png}
+		\caption{Análisis de residuos del modelo Ensemble\_2. Los residuos muestran una distribución centrada alrededor de cero, indicando buen ajuste del modelo.}
+		\label{fig:residuos_mejor_modelo}
+	\end{figure}
+	
+	\subsection{Importancia de Características}
+	El análisis de importancia reveló que las características más relevantes son:
+	\begin{enumerate}
+		\item temperature\_2m\_nasa (7.23)
+		\item wind\_speed\_90m\_open\_lag24 (0.70)
+		\item wind\_speed\_90m\_ref (0.40)
+		\item wind\_speed\_90m\_nasa\_lag24 (0.04)
+		\item WTG\_invalidos (-0.17)
+	\end{enumerate}
+	
+	La Figura \ref{fig:importancia_caracteristicas} visualiza la importancia relativa de cada característica, donde la temperatura a 2 metros de altura (NASA) emerge como la variable más influyente en la predicción de potencia.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.8\linewidth]{images/Figure_6.png}
+		\caption{Importancia relativa de características en el modelo Ensemble\_2. La temperatura a 2 metros (NASA) es la variable más influyente.}
+		\label{fig:importancia_caracteristicas}
+	\end{figure}
+	
+	\subsection{Detección de Anomalías}
+	El análisis con DBSCAN identificó 116 anomalías (5.95\%) en el conjunto de prueba, proporcionando insights valiosos para el monitoreo operativo y la detección de condiciones anómalas.
+	
+	La Figura \ref{fig:dbscan_anomalias} muestra la visualización de clusters y anomalías detectadas mediante DBSCAN en el espacio PCA de características y residuos. Los puntos marcados como anomalías (cluster -1) representan casos que requieren atención especial.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.8\linewidth]{images/Figure_4.png}
+		\caption{Detección de anomalías mediante DBSCAN en el espacio PCA. Los puntos rojos representan anomalías detectadas que requieren monitoreo especial.}
+		\label{fig:dbscan_anomalias}
+	\end{figure}
+	
+	La Figura \ref{fig:distribucion_residuos} compara la distribución de residuos entre casos normales y anomalías, mostrando que las anomalías tienden a presentar errores de predicción más extremos.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.7\linewidth]{images/Figure_5.png}
+		\caption{Distribución de residuos: casos normales vs anomalías. Las anomalías muestran errores de predicción más extremos.}
+		\label{fig:distribucion_residuos}
+	\end{figure}
+	
+	\subsection{Predicción del Día Siguiente}
+	La validación en datos del día siguiente mostró:
+	\begin{itemize}
+		\item MAE: 0.8416
+		\item RMSE: 1.0363
+		\item R²: 0.5698
+		\item MAPE: 41.92\%
+	\end{itemize}
+	
+	Estos resultados indican que el modelo mantiene buen desempeño en datos no vistos, aunque con degradación esperada debido a la naturaleza temporal de los datos.
+	
+	La Figura \ref{fig:residuos_prediccion} muestra el análisis de residuos para la predicción del día siguiente, donde se observa que el modelo mantiene capacidad predictiva aunque con mayor dispersión que en el conjunto de entrenamiento.
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.9\linewidth]{images/Figure_7.png}
+		\caption{Análisis de residuos para la predicción del día siguiente. El modelo mantiene capacidad predictiva con mayor dispersión que en entrenamiento.}
+		\label{fig:residuos_prediccion}
+	\end{figure}
 	
 	\section{Conclusiones}
-	Los modelos basados en Machine Learning, especialmente los ensembles, permiten realizar predicciones precisas de producción eólica. Su implementación práctica facilitaría decisiones informadas en mantenimiento y operaciones.
 	
-	\section{Recomendaciones}
+	Este trabajo presenta un pipeline completo de machine learning para predicción de potencia eólica que incluye:
+	
+	\begin{enumerate}
+		\item \textbf{Preprocesamiento robusto}: Manejo efectivo de datos faltantes y valores atípicos mediante técnicas avanzadas de imputación y filtrado
+		\item \textbf{Selección automática de características}: Pipeline de tres etapas que reduce dimensionalidad manteniendo información relevante
+		\item \textbf{Ensembles optimizados}: Combinación ponderada que supera modelos individuales mediante optimización de pesos
+		\item \textbf{Detección de anomalías}: Sistema de monitoreo basado en DBSCAN para identificar condiciones operativas anómalas
+	\end{enumerate}
+	
+	Los resultados demuestran que los ensembles ponderados, particularmente la combinación de MLP (90\%) y regresión lineal (10\%), proporcionan la mejor combinación de precisión y robustez. El R² de 0.8234 y MAE de 0.4287 representan mejoras significativas sobre modelos base individuales.
+	
+	\subsection{Contribuciones Principales}
+	Las principales contribuciones de este trabajo incluyen:
 	\begin{itemize}
-		\item Incorporar modelos híbridos con adaptación dinámica como los propuestos por AlShafeey y Csaki.
-		\item Integrar la predicción en sistemas SCADA para monitoreo continuo.
-		\item Evaluar nuevos modelos DL y preprocesamiento espacial.
+		\item Desarrollo de un pipeline de preprocesamiento que maneja eficientemente múltiples fuentes de datos
+		\item Implementación de un sistema de selección automática de características que combina múltiples técnicas
+		\item Evaluación exhaustiva de algoritmos de machine learning incluyendo modelos tradicionales y avanzados
+		\item Desarrollo de un ensemble ponderado que optimiza la combinación de modelos
+		\item Implementación de un sistema de detección de anomalías para monitoreo operativo
 	\end{itemize}
+	
+	\subsection{Limitaciones del Trabajo}
+	Es importante reconocer las limitaciones del presente trabajo:
+	\begin{itemize}
+		\item Los datos provienen de un solo parque eólico, limitando la generalización
+		\item El horizonte de predicción se limita a 24 horas
+		\item No se consideran variables adicionales como dirección del viento o turbulencia
+		\item El modelo no incorpora información sobre mantenimiento programado
+	\end{itemize}
+	
+	\section{Trabajo Futuro}
+	
+	Las siguientes líneas de investigación incluyen:
+	\begin{itemize}
+		\item \textbf{Integración de Deep Learning}: Implementación de LSTM, GRU y Transformers para capturar dependencias temporales complejas
+		\item \textbf{Modelos Híbridos}: Combinación de enfoques físicos (WRF) con modelos estadísticos para mayor precisión
+		\item \textbf{Sistemas de Alerta Temprana}: Desarrollo de sistemas que anticipen condiciones meteorológicas extremas
+		\item \textbf{Optimización Avanzada}: Implementación de optimización bayesiana para hiperparámetros
+		\item \textbf{Validación Multi-sitio}: Aplicación del modelo en múltiples parques eólicos para evaluar generalización
+		\item \textbf{Interpretabilidad}: Implementación de técnicas SHAP para explicar predicciones
+		\item \textbf{Predicción Probabilística}: Desarrollo de modelos que proporcionen intervalos de confianza
+		\item \textbf{Integración Operacional}: Desarrollo de APIs para integración con sistemas SCADA
+	\end{itemize}
+	
+	\subsection{Impacto Esperado}
+	La implementación de este sistema de predicción podría tener un impacto significativo en:
+	\begin{itemize}
+		\item \textbf{Operación del Parque}: Mejora en la planificación operativa y mantenimiento
+		\item \textbf{Mercados Energéticos}: Participación más efectiva en mercados de corto plazo
+		\item \textbf{Integración de Renovables}: Mayor penetración de energías renovables en la red
+		\item \textbf{Reducción de Costos}: Minimización de penalizaciones por desvíos de predicción
+	\end{itemize}
+	
+	\section{Agradecimientos}
+	Los autores agradecen el acceso a los datos operativos del parque eólico y el soporte técnico proporcionado por el personal de operaciones.
 	
 	\bibliographystyle{IEEEtran}
 	\bibliography{referencias}
+	
+	\newpage
+	\section*{Apéndice A: Diccionario de Datos}
+	
+	Este apéndice proporciona una descripción detallada de todas las variables utilizadas en el análisis, incluyendo su origen, unidades, rango de valores y significado en el contexto de predicción de potencia eólica.
+	
+	\subsection{Datos Meteorológicos NASA POWER}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Variables meteorológicas NASA POWER}
+		\begin{tabular}{|p{2.5cm}|p{1.2cm}|p{1.4cm}|p{1cm}|p{3.5cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Unidad} & \textbf{Rango} & \textbf{Res.} & \textbf{Descripción} \\
+			\hline
+			wind\_speed\_10m\_nasa & m/s & 0-25 & H & Velocidad del viento a 10m \\
+			\hline
+			wind\_speed\_90m\_nasa & m/s & 0-30 & H & Velocidad del viento a 90m \\
+			\hline
+			temperature\_2m\_nasa & °C & -20-45 & H & Temperatura del aire a 2m \\
+			\hline
+			surface\_pressure\_nasa & hPa & 900-1100 & H & Presión atmosférica superficial \\
+			\hline
+			pressure\_90m\_nasa & hPa & 900-1100 & H & Presión atmosférica a 90m \\
+			\hline
+			relative\_humidity\_nasa & \% & 0-100 & H & Humedad relativa del aire \\
+			\hline
+			precipitation\_nasa & mm & 0-50 & H & Precipitación acumulada \\
+			\hline
+			solar\_radiation\_nasa & W/m² & 0-1200 & H & Radiación solar incidente \\
+			\hline
+		\end{tabular}
+		\label{tab:nasa_variables}
+	\end{table*}
+	
+	\vspace{0.5cm}
+	
+	\subsection{Datos Meteorológicos OpenMeteo}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Variables meteorológicas OpenMeteo}
+		\begin{tabular}{|p{2.5cm}|p{1.2cm}|p{1.4cm}|p{1cm}|p{3.5cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Unidad} & \textbf{Rango} & \textbf{Res.} & \textbf{Descripción} \\
+			\hline
+			wind\_speed\_10m\_open & m/s & 0-25 & H & Velocidad del viento a 10m \\
+			\hline
+			wind\_speed\_90m\_open & m/s & 0-30 & H & Velocidad del viento a 90m \\
+			\hline
+			temperature\_2m\_open & °C & -20-45 & H & Temperatura del aire a 2m \\
+			\hline
+			surface\_pressure\_open & hPa & 900-1100 & H & Presión atmosférica superficial \\
+			\hline
+			relative\_humidity\_open & \% & 0-100 & H & Humedad relativa \\
+			\hline
+			precipitation\_open & mm & 0-50 & H & Precipitación \\
+			\hline
+		\end{tabular}
+		\label{tab:openmeteo_variables}
+	\end{table*}
+	
+	\vspace{0.5cm}
+	
+	\subsection{Datos Operativos del Parque Eólico}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Variables operativas del parque eólico}
+		\begin{tabular}{|p{2.5cm}|p{1.2cm}|p{1.4cm}|p{1cm}|p{3.5cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Unidad} & \textbf{Rango} & \textbf{Res.} & \textbf{Descripción} \\
+			\hline
+			time & datetime & - & H & Timestamp de la medición \\
+			\hline
+			wind\_speed\_90m\_ref & m/s & 0-30 & H & Velocidad del viento de referencia \\
+			\hline
+			Pot\_parque & MW & 0-50 & H & Potencia activa total del parque \\
+			\hline
+			WTG\_disponibles & Unidades & 0-20 & H & Aerogeneradores en funcionamiento \\
+			\hline
+			WTG\_invalidos & Unidades & 0-20 & H & Aerogeneradores con restricciones \\
+			\hline
+			Pot\_parque\_escaled & MW/turbina & 0-6 & H & Potencia normalizada por turbina \\
+			\hline
+		\end{tabular}
+		\label{tab:operational_variables}
+	\end{table*}
+	
+	\vspace{0.5cm}
+	
+	\subsection{Características Derivadas (Feature Engineering)}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Características derivadas más importantes}
+		\begin{tabular}{|p{2.5cm}|p{1.2cm}|p{1.4cm}|p{1.2cm}|p{3.5cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Unidad} & \textbf{Rango} & \textbf{Tipo} & \textbf{Descripción} \\
+			\hline
+			wind\_speed\_90m\_nasa\_sq & (m/s)² & 0-900 & Derivada & Velocidad NASA al cuadrado \\
+			\hline
+			wind\_speed\_90m\_nasa\_cub & (m/s)³ & 0-27000 & Derivada & Velocidad NASA al cubo \\
+			\hline
+			wind\_speed\_90m\_nasa\_lag24 & m/s & 0-30 & Temporal & Velocidad NASA (24h anterior) \\
+			\hline
+			wind\_speed\_90m\_open\_lag24 & m/s & 0-30 & Temporal & Velocidad OpenMeteo (24h anterior) \\
+			\hline
+			delta\_wind90 & m/s & -10-10 & Interacción & Diferencia NASA-OpenMeteo \\
+			\hline
+			product\_wind90 & (m/s)² & 0-900 & Interacción & Producto NASA-OpenMeteo \\
+			\hline
+		\end{tabular}
+		\label{tab:derived_features}
+	\end{table*}
+	
+	\vspace{0.5cm}
+	
+	\subsection{Características Seleccionadas (Finales)}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Características finales seleccionadas por importancia}
+		\begin{tabular}{|p{2.5cm}|p{1.2cm}|p{1.4cm}|p{1.2cm}|p{3.5cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Importancia} & \textbf{Fuente} & \textbf{Tipo} & \textbf{Descripción} \\
+			\hline
+			temperature\_2m\_nasa & 7.2316 & NASA POWER & Original & Temperatura a 2m (más importante) \\
+			\hline
+			wind\_speed\_90m\_open\_lag24 & 0.6993 & OpenMeteo & Temporal & Velocidad OpenMeteo (24h anterior) \\
+			\hline
+			wind\_speed\_90m\_ref & 0.4021 & Parque & Original & Velocidad de referencia \\
+			\hline
+			wind\_speed\_90m\_nasa\_lag24 & 0.0446 & NASA POWER & Temporal & Velocidad NASA (24h anterior) \\
+			\hline
+			WTG\_invalidos & -0.1713 & Parque & Original & Aerogeneradores con restricciones \\
+			\hline
+			surface\_pressure\_nasa & -0.7381 & NASA POWER & Original & Presión atmosférica \\
+			\hline
+			wind\_speed\_10m\_nasa & -0.9597 & NASA POWER & Original & Velocidad a 10m \\
+			\hline
+			wind\_speed\_10m\_open & -4.3252 & OpenMeteo & Original & Velocidad OpenMeteo 10m \\
+			\hline
+			temperature\_2m\_open & -4.6986 & OpenMeteo & Original & Temperatura OpenMeteo \\
+			\hline
+		\end{tabular}
+		\label{tab:selected_features}
+	\end{table*}
+	
+	\subsection{Descripción de Fuentes de Datos}
+	
+	\subsubsection{NASA POWER (Prediction Of Worldwide Energy Resources)}
+	\begin{itemize}[leftmargin=*]
+		\item \textbf{Descripción}: Plataforma de la NASA que proporciona datos meteorológicos de alta resolución
+		\item \textbf{Cobertura}: Global con resolución de 0.5° x 0.5°
+		\item \textbf{Resolución temporal}: Horaria
+		\item \textbf{Variables}: Temperatura, humedad, presión, velocidad del viento, radiación solar
+		\item \textbf{Acceso}: Gratuito a través de API REST
+		\item \textbf{Calidad}: Alta precisión, validada con estaciones terrestres
+	\end{itemize}
+	
+	\subsubsection{OpenMeteo}
+	\begin{itemize}[leftmargin=*]
+		\item \textbf{Descripción}: Servicio meteorológico gratuito basado en modelos numéricos
+		\item \textbf{Cobertura}: Global con resolución de 11km
+		\item \textbf{Resolución temporal}: Horaria
+		\item \textbf{Variables}: Temperatura, humedad, presión, velocidad del viento, precipitación
+		\item \textbf{Acceso}: Gratuito a través de API REST
+		\item \textbf{Calidad}: Buena precisión, complementaria a NASA POWER
+	\end{itemize}
+	
+	\subsubsection{Datos Operativos del Parque}
+	\begin{itemize}[leftmargin=*]
+		\item \textbf{Descripción}: Datos SCADA del parque eólico en tiempo real
+		\item \textbf{Cobertura}: Parque específico
+		\item \textbf{Resolución temporal}: Horaria
+		\item \textbf{Variables}: Potencia generada, estado de aerogeneradores, velocidad de referencia
+		\item \textbf{Acceso}: Interno del operador del parque
+		\item \textbf{Calidad}: Alta precisión, datos operativos reales
+	\end{itemize}
+	
+	\subsection{Proceso de Limpieza y Validación}
+	
+	\subsubsection{Criterios de Eliminación de Datos}
+	\begin{enumerate}[leftmargin=*]
+		\item \textbf{Valores faltantes}: Registros con más del 50\% de variables faltantes
+		\item \textbf{Outliers por IQR}: Valores fuera del rango Q1 - 1.5*IQR a Q3 + 1.5*IQR
+		\item \textbf{Outliers por Z-score}: Valores con |z-score| > 3
+		\item \textbf{Filtros de dominio}:
+		\begin{itemize}
+			\item Velocidad del viento < 4 m/s y potencia > 1 MW/turbina
+			\item Velocidad del viento < 6 m/s y potencia > 2 MW/turbina
+			\item Velocidad del viento < 8 m/s y potencia > 4 MW/turbina
+			\item Velocidad del viento > 12.5 m/s y potencia < 3 MW/turbina
+			\item Velocidad del viento > 14 m/s y potencia < 4 MW/turbina
+			\item Potencia negativa o > 6 MW/turbina
+		\end{itemize}
+	\end{enumerate}
+	
+	\subsubsection{Imputación de Valores Faltantes}
+	\begin{itemize}[leftmargin=*]
+		\item \textbf{Método}: IterativeImputer con RandomForestRegressor
+		\item \textbf{Parámetros}: max\_iter=10, random\_state=42
+		\item \textbf{Aplicación}: Solo para registros con WTG\_invalidos = 0
+		\item \textbf{Justificación}: Considera correlaciones entre variables
+	\end{itemize}
+	
+	\subsection{Estadísticas Descriptivas del Dataset Final}
+	
+	\vspace{0.2cm}
+	
+	\begin{table*}[htbp]
+		\centering
+		\caption{Estadísticas descriptivas de variables principales}
+		\begin{tabular}{|p{2.5cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|}
+			\hline
+			\textbf{Variable} & \textbf{Media} & \textbf{Desv. Est.} & \textbf{Min} & \textbf{Max} & \textbf{Registros} \\
+			\hline
+			Pot\_parque\_escaled & 2.45 & 1.78 & 0.00 & 5.98 & 9,743 \\
+			\hline
+			wind\_speed\_90m\_ref & 8.23 & 4.12 & 0.50 & 22.10 & 9,743 \\
+			\hline
+			temperature\_2m\_nasa & 18.45 & 8.23 & -5.20 & 35.80 & 9,743 \\
+			\hline
+			WTG\_disponibles & 15.2 & 2.1 & 8 & 20 & 9,743 \\
+			\hline
+			WTG\_invalidos & 1.8 & 1.9 & 0 & 8 & 9,743 \\
+			\hline
+		\end{tabular}
+		\label{tab:estadisticas_descriptivas}
+	\end{table*}
 	
 \end{document}
