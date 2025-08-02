@@ -6,3 +6,5 @@
 !*.py
 !*.xlsx
 !*.csv
+!*.png
+!*.bib
