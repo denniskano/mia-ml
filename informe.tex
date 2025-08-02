@@ -172,16 +172,65 @@
 		\item \textbf{AlShafeey y Csaki (2024)} introducen un modelo adaptativo que selecciona dinámicamente el mejor algoritmo, enfoque inspirador para diseños futuros.
 	\end{itemize}
 	
-	\textbf{Complementos específicos}:
+	\subsection{Otros Estudios Relevantes}
+	
+	Además de los estudios centrales discutidos previamente, se analizaron otros trabajos recientes que aportan elementos clave para la construcción metodológica de esta investigación. A continuación, se presentan sus principales contribuciones, organizadas por temática y con énfasis en cómo fortalecen las decisiones adoptadas en este estudio.
+	
+	\vspace{0.3cm}
+	
+	\textbf{Modelos comparativos y validaciones extensas}:
 	\begin{itemize}[leftmargin=*,itemsep=1pt]
-		\item \textbf{2024 - CNN-BiLSTM + AR}: modelo híbrido secuencial con autoregresión, afín a nuestro enfoque combinado MLP + regresión.
-		\item \textbf{2024 - Adaptive ML}: propone un sistema dinámico multi-algoritmo, alineado con nuestras decisiones de ponderación.
-		\item \textbf{2021 - WRF en Brasil}: estudio basado en WRF que motiva el uso de fuentes meteorológicas de alta resolución.
+		\item \textbf{Bouabdallaoui et al. (2023) \cite{bouabdallaoui2023application}} comparan cuatro algoritmos (MLP, RF, SVR, RBF) para predicción de corto plazo, concluyendo que RF y MLP son los más robustos ante datos meteorológicos volátiles, lo cual valida la inclusión de estos modelos en nuestro conjunto evaluado y su uso en ensembles.
+		\item \textbf{Qureshi et al. (2023) \cite{qureshi2023shortterm}} destacan la superioridad de GRU sobre ARIMA en predicciones de viento, con \(R^2 = 0.89\), evidenciando la ventaja de modelos no lineales secuenciales. Esto respalda la exploración futura de arquitecturas tipo GRU o LSTM en nuestros pipelines.
+		\item \textbf{Rathnayake et al. (2025) \cite{rathnayake2025predicting}} realizan una comparación masiva de 24 algoritmos ML sobre datos reales del parque Musalpetti, demostrando que los enfoques basados en \textit{stacking} y \textit{bagging} ofrecen mejor estabilidad, lo cual refuerza nuestra elección de ensembles ponderados como solución final.
 	\end{itemize}
 	
-	Estos estudios sustentan las decisiones metodológicas tomadas en nuestro enfoque, desde el diseño del pipeline hasta la validación de ensembles y detección de anomalías.
-
-
+	\vspace{0.3cm}
+	
+	\textbf{Técnicas avanzadas de ensamblado y optimización}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Huang et al. (2023) \cite{huang2023ensemble}} implementan un método de ensamblado ponderado optimizado con algoritmos de enjambre (PSO, SSA, WOA), logrando una mejora de hasta 31\% sobre modelos individuales. Su enfoque inspiró nuestra estrategia de combinación de MLP con regresión lineal como ensemble final.
+		\item \textbf{Huang et al. (2023b) \cite{huang2023multiobjective}} amplían esta estrategia utilizando 25 submodelos en un ensamblado jerárquico, logrando reducir el error en un rango de 12–31\%. Su aproximación reafirma el potencial de ensamblados multi-nivel, que podría implementarse en investigaciones futuras.
+	\end{itemize}
+	
+	\vspace{0.3cm}
+	
+	\textbf{Modelos de redes profundas}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Ayene y Yibre (2024) \cite{ayene2024wind}} implementan LSTM, Bi-LSTM y GRU para predicción de 5 minutos en un parque eólico, alcanzando \(R^2 > 0.97\). Sus resultados sugieren que la inclusión de memoria de largo plazo en redes neuronales es crucial en series temporales densas, lo que abre posibilidades para modelos más sofisticados en trabajos futuros.
+		\item \textbf{Jonkers et al. (2024) \cite{jonkers2024probabilistic}} desarrollan una arquitectura CNN profunda combinada con codificadores espaciales y técnicas probabilísticas, logrando predicción regional de alta precisión. Su enfoque valida el uso de datos multiespacio-temporales y modelado probabilístico como extensiones viables a nuestro enfoque determinista.
+	\end{itemize}
+	
+	\vspace{0.3cm}
+	
+	\textbf{Preprocesamiento y calidad de datos}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Cococcioni et al. (2012) \cite{cococcioni2012oneday}} demuestran que el preprocesamiento cuidadoso (incluyendo normalización, selección de variables y filtrado físico) mejora notablemente la precisión de MLP y SVR en instalaciones fotovoltaicas. Esto refuerza la importancia de nuestro pipeline de limpieza y selección.
+		\item \textbf{Kirk-Davidoff (2012) \cite{kirk2012forecasting}} analiza la física del recurso eólico, subrayando cómo errores en mediciones o turbulencias afectan los modelos. Su marco físico respaldó nuestras reglas de filtrado físico de datos en la curva de potencia.
+	\end{itemize}
+	
+	\vspace{0.3cm}
+	
+	\textbf{Revisiones y tendencias metodológicas}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item \textbf{Chen y Folly (2018) \cite{chen2018wind}}, \textbf{Tsai et al. (2023) \cite{tsai2023review}} y \textbf{Tuncar et al. (2024) \cite{tuncar2024review}} proporcionan revisiones exhaustivas que organizan los enfoques en función del horizonte temporal, complejidad y tipo de datos. Sus clasificaciones sirvieron como base para estructurar nuestro marco comparativo y decidir sobre el uso de ML frente a enfoques físicos.
+		\item \textbf{AlShafeey y Csaki (2024) \cite{alshafeey2024adaptive}} proponen un sistema adaptativo que selecciona automáticamente el mejor algoritmo y conjunto de variables según la ventana temporal. Este enfoque fue una fuente de inspiración directa para nuestro proceso de selección de características y ponderación de modelos.
+	\end{itemize}
+	
+	\vspace{0.3cm}
+	
+	\textbf{Complementos específicos y alineamientos con este trabajo}:
+	\begin{itemize}[leftmargin=*,itemsep=1pt]
+		\item El modelo híbrido CNN-BiLSTM con autoregresión propuesto en 2024 \cite{zhang2024cnnbilstm} muestra cómo integrar arquitecturas secuenciales con componentes clásicos para robustecer la predicción, estrategia análoga a nuestra combinación MLP + regresión.
+		\item El enfoque "Adaptive ML" (2024) \cite{alshafeey2024adaptive} propone una lógica de selección dinámica de algoritmos, coherente con nuestro esquema de búsqueda de pesos óptimos en ensembles.
+		\item Un estudio con WRF en Brasil (2021) \cite{jacondino2021hourly} sustenta el uso de meteorología numérica como fuente externa, lo cual motivó nuestra integración de datos de OpenMeteo y NASA POWER como insumos multifuente.
+		\item \textbf{Lee et al. (2024) \cite{lee2024vertical}} introducen una técnica novedosa de extracción de características basada en capas verticales del viento, mejorando la representación espacial de datos meteorológicos para predicción day-ahead. Aunque nuestro trabajo no explora directamente perfiles verticales, este enfoque sugiere oportunidades de mejora futura en la integración de datos atmosféricos tridimensionales.
+		
+	\end{itemize}
+	
+	\vspace{0.3cm}
+	
+	Estos estudios respaldan y enriquecen las decisiones adoptadas en esta investigación, proporcionando validación externa y orientaciones metodológicas para la mejora continua del pipeline de predicción.
 
 	
 	\section{Metodología}
