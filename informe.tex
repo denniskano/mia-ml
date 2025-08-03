@@ -19,11 +19,31 @@
 \title{Predicción de Potencia Eólica mediante Ensembles de Machine Learning: Un Enfoque Comparativo}
 
 \author{
-	\IEEEauthorblockN{Luis Enrique Koc Góngora, Alex Felipe Mancilla Antay, Herbert Antonio Meléndez García, Dennis Jack Paitán Cano}
-	\IEEEauthorblockA{Facultad de Ingeniería Industrial y de Sistemas\\
-		Universidad Nacional de Ingeniería\\
-		Lima, Perú\\
-		\{luis.koc, afmancilla, hamg.94, denniskano\}@gmail.com}
+	\IEEEauthorblockN{Luis Koc}
+	\IEEEauthorblockA{luis.koc@gmail.com}
+	\and
+	\IEEEauthorblockN{Alex Mancilla}
+	\IEEEauthorblockA{afmancilla@gmail.com}
+	\and
+	\IEEEauthorblockN{Herbert García}
+	\IEEEauthorblockA{hamg.94@gmail.com}
+	\and
+	\IEEEauthorblockN{Denis Paitán}
+	\IEEEauthorblockA{denniskano@gmail.com}
+}
+
+% Afiliación común centrada a lo ancho
+\IEEEoverridecommandlockouts
+\IEEEaftertitletext{%
+\begin{center}
+\vspace{-1.5em}
+	\begin{minipage}{\textwidth}
+	\centering
+	\textit{Facultad de Ingeniería Industrial y de Sistemas\\
+	Universidad Nacional de Ingeniería\\
+	Lima, Perú}
+		\end{minipage}
+	\end{center}
 }
 
 \begin{document}
@@ -37,7 +57,7 @@
 	\fancyfoot[C]{\thepage}
 	
 	\maketitle
-	
+
 	\begin{abstract}
 		La predicción precisa de la producción horaria en parques eólicos es esencial para garantizar la estabilidad del sistema eléctrico, reducir penalizaciones por desvío y facilitar la integración de energías renovables en el mercado diario. Este estudio desarrolla un modelo de aprendizaje automático con horizonte de 24 horas, basado en un enfoque integral que incluye limpieza avanzada de datos, ingeniería y selección automatizada de características, y ensamblaje de modelos. Se analizaron múltiples algoritmos supervisados —entre ellos \textit{Random Forest}, \textit{Gradient Boosting}, \textit{XGBoost}, \textit{LightGBM}, \textit{CatBoost} y redes neuronales MLP—, integrados mediante técnicas de ensamblado (\textit{stacking} y combinación ponderada). Adicionalmente, se incorporó un sistema de detección no supervisada de anomalías basado en DBSCAN aplicado sobre los residuos del modelo.
 		
