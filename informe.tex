@@ -165,7 +165,20 @@ Este estudio se basa en una revisión exhaustiva de 18 artículos recientes sobr
 \end{itemize}
 
 
-
+\begin{table}[htbp]
+	\caption{Comparación de Resultados entre Estudios Relevantes}
+	\centering
+	\begin{tabular}{@{}lccc@{}}
+		\toprule
+		\textbf{Estudio} & \textbf{Modelo} & \textbf{MAE} & \textbf{R\textsuperscript{2}} \\ \midrule
+		Huang et al. (2023)     & Ensemble RF+GB+SVM+KNN   & 5.15       & 0.927 \\
+		Bouabdallaoui et al. (2023) & MLP                  & 5.3        & 0.924 \\
+		Kolev y Sulakov (2019)  & Gradient Boosting     & 6.02 MW    & 0.765 \\
+		\textbf{Este trabajo}   & \textbf{MLP + LR (90/10)} & \textbf{0.4287} & \textbf{0.8234} \\
+		\bottomrule
+	\end{tabular}
+	\label{tab:comparacion-resultados}
+\end{table}
 
 
 	
