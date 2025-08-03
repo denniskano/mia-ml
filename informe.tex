@@ -117,8 +117,57 @@ Las contribuciones de este trabajo al estado del arte en predicción de potencia
 \end{itemize}
 
 \section{Estado del Arte}
+
+Este estudio se basa en una revisión exhaustiva de 18 artículos recientes sobre predicción de potencia eólica, los cuales exploran diferentes enfoques, modelos y atributos relevantes. A continuación, se resumen las principales tendencias detectadas y aquellas adoptadas en el presente trabajo.
+
+\subsection{Atributos Recurrentes}
+
+\begin{itemize}
+	\item \textbf{Velocidad del viento:} Es el predictor más común y crítico. Se mide a distintas alturas (10m, 90m, 100m) y a menudo se utiliza su cuadrado o cubo para capturar relaciones no lineales conforme a la ley de Betz.
 	
-La predicción de potencia eólica ha evolucionado notablemente en la última década, incorporando enfoques cada vez más sofisticados que van desde modelos físicos y estadísticos tradicionales hasta técnicas de aprendizaje automático y redes neuronales profundas. Esta sección resume los enfoques más relevantes y sus aportes, destacando aquellas contribuciones que fundamentan el enfoque adoptado en el presente estudio.
+	\item \textbf{Temperatura del aire:} Considerada para ajustar efectos atmosféricos. En este estudio, la temperatura a 2 metros (NASA) resultó ser la variable más influyente.
+	
+	\item \textbf{Presión atmosférica y humedad relativa:} Frecuentemente usadas para enriquecer el contexto meteorológico. Aplicadas en estudios como Liu et al. (2023), Rathnayake et al. (2025) y Jonkers et al. (2024).
+	
+	\item \textbf{Lags temporales:} Variables como \textit{Lag-1} y \textit{Lag-24} de velocidad del viento capturan la dinámica y la inercia del sistema. Se incorporan en este estudio como atributos derivados.
+	
+	\item \textbf{Estadísticas móviles:} Promedios y desviaciones estándar móviles ayudan a suavizar el ruido y detectar tendencias. Inspirado en trabajos como Cococcioni et al. (2012) y Huang et al. (2023).
+\end{itemize}
+
+\subsection{Modelos de Predicción Utilizados}
+
+\begin{itemize}
+	\item \textbf{Modelos Lineales:} La regresión lineal es ampliamente empleada como referencia base en múltiples investigaciones.
+	
+	\item \textbf{Ensemble de Árboles:} Random Forest, Extra Trees y Gradient Boosting aparecen como alternativas robustas y de bajo sobreajuste.
+	
+	\item \textbf{Boosting Avanzado:} Algoritmos como XGBoost, LightGBM y CatBoost presentan altos niveles de precisión. Adoptados especialmente en estudios como Tsai et al. (2023), Bouabdallaoui et al. (2023) y Tuncar et al. (2024).
+	
+	\item \textbf{Redes Neuronales:} Modelos MLP, LSTM y CNN se consolidan en estudios recientes por su capacidad para capturar relaciones no lineales y temporales complejas. En este trabajo se integró un MLP como componente principal del ensemble.
+	
+	\item \textbf{Modelos Combinados:} Técnicas de combinación como \textit{stacking}, \textit{bagging} o \textit{weighted ensembles} permiten aprovechar múltiples paradigmas. En este estudio, el mejor modelo fue un ensemble ponderado MLP (90\%) + regresión lineal (10\%).
+\end{itemize}
+
+\subsection{Contribuciones Adoptadas}
+
+\begin{itemize}
+	\item Selección de atributos derivados de estudios previos, incluyendo transformaciones polinómicas y características temporales.
+	
+	\item Limpieza exhaustiva de datos utilizando IQR, z-score y reglas físicas del dominio, tal como se sugiere en trabajos como Kolev y Sulakov (2019) y Jonkers et al. (2024).
+	
+	\item Integración de múltiples fuentes meteorológicas (NASA POWER y OpenMeteo), siguiendo buenas prácticas observadas en Liu et al. (2023).
+	
+	\item Implementación de un pipeline completo con imputación iterativa basada en Random Forest, selección automática de características, y evaluación de múltiples algoritmos.
+	
+	\item Aplicación de PCA y DBSCAN para detección de anomalías, identificando registros con errores de predicción extremos, técnica inspirada en Huang et al. (2023).
+	
+	\item Validación sobre datos del día siguiente, evaluando la capacidad de generalización del modelo, en línea con el enfoque de Jonkers et al. (2024).
+\end{itemize}
+
+
+
+
+
 	
 \subsection{Importancia y motivación}
 	
